@@ -26,6 +26,7 @@
 #include "LocalGeospatialServer.h"
 
 #include "ArcGISRuntimeEnvironment.h"
+#include "LocalGeoprocessingService.h"
 #include "LocalServer.h"
 #include "Portal.h"
 
@@ -39,6 +40,25 @@ using namespace Esri::ArcGISRuntime;
 LocalGeospatialServer::LocalGeospatialServer(QObject *parent) : QObject(parent)
 {
 
+}
+
+QFileInfoList LocalGeospatialServer::geoprocessingPackages() const
+{
+    QString datapathKeyName = "geoint.modelpath";
+    QProcessEnvironment systemEnvironment = QProcessEnvironment::systemEnvironment();
+    if (systemEnvironment.contains(datapathKeyName))
+    {
+        QString datapathValue = systemEnvironment.value(datapathKeyName);
+        QDir dataDirectory(datapathValue);
+        if (dataDirectory.exists())
+        {
+            dataDirectory.setFilter(QDir::Files);
+            dataDirectory.setNameFilters(QStringList() << "*.gpkx");
+            return dataDirectory.entryInfoList();
+        }
+    }
+
+    return QFileInfoList();
 }
 
 QString LocalGeospatialServer::licenseFilePath() const
@@ -101,6 +121,45 @@ LocalGeospatialServer::Status LocalGeospatialServer::start()
     }
 
     return Status::Starting;
+}
+
+void LocalGeospatialServer::startGeoprocessing()
+{
+    QFileInfoList packages = geoprocessingPackages();
+    foreach (const QFileInfo fileInfo, packages)
+    {
+        QString packageFilePath = fileInfo.absoluteFilePath();
+        qDebug() << packageFilePath;
+        LocalGeoprocessingService* localGpService = new LocalGeoprocessingService(packageFilePath, this);
+        connect(localGpService, &LocalGeoprocessingService::statusChanged, this, [localGpService]()
+        {
+            switch (localGpService->status())
+            {
+            case LocalServerStatus::Starting:
+                qDebug() << "Local geospatial service " << localGpService->name() << " starting...";
+                break;
+
+            case LocalServerStatus::Started:
+                qDebug() << "Local geospatial service " << localGpService->name() << " started.";
+                qDebug() << localGpService->url();
+                break;
+
+            case LocalServerStatus::Stopping:
+                qDebug() << "Local geospatial service " << localGpService->name() << " stopping...";
+                break;
+
+            case LocalServerStatus::Stopped:
+                qDebug() << "Local geospatial service " << localGpService->name() << " stopped.";
+                break;
+
+            case LocalServerStatus::Failed:
+                qDebug() << "Local geospatial service " << localGpService->name() << " failed!";
+                break;
+            }
+
+        });
+        localGpService->start();
+    }
 }
 
 void LocalGeospatialServer::saveLicense(LicenseInfo const *licenseInfo)
@@ -204,6 +263,7 @@ void LocalGeospatialServer::statusChanged()
 
     case LocalServerStatus::Started:
         qDebug() << "Local geospatial server started.";
+        startGeoprocessing();
         break;
 
     case LocalServerStatus::Stopping:

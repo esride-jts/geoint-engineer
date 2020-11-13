@@ -35,6 +35,7 @@ class Portal;
 }
 }
 
+#include <QFileInfoList>
 #include <QObject>
 
 class LocalGeospatialServer : public QObject
@@ -59,6 +60,9 @@ private slots:
 
 private:
     QString licenseFilePath() const;
+
+    QFileInfoList geoprocessingPackages() const;
+    void startGeoprocessing();
 
     void saveLicense(Esri::ArcGISRuntime::LicenseInfo const *licenseInfo);
     void updateLicense(Esri::ArcGISRuntime::LicenseInfo const *licenseInfo, bool save);
