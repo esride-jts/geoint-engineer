@@ -20,6 +20,7 @@
 #include <QGuiApplication>
 #include <QProcessEnvironment>
 #include <QQmlApplicationEngine>
+#include <QQuickStyle>
 
 //------------------------------------------------------------------------------
 
@@ -38,7 +39,7 @@ int main(int argc, char *argv[])
     if (systemEnvironment.contains(licenseKeyName))
     {
         QString licenseKeyValue = systemEnvironment.value(licenseKeyName);
-        ArcGISRuntimeEnvironment::setLicense(licenseKeyValue);
+        //ArcGISRuntimeEnvironment::setLicense(licenseKeyValue);
     }
 
     // Register the map view for QML
@@ -46,6 +47,9 @@ int main(int argc, char *argv[])
 
     // Register the GEOINTEngineer (QQuickItem) for QML
     qmlRegisterType<GEOINTEngineer>("Esri.GEOINTEngineer", 1, 0, "GEOINTEngineer");
+
+    // Activate the styling
+    QQuickStyle::setStyle("Material");
 
     // Initialize application view
     QQmlApplicationEngine engine;

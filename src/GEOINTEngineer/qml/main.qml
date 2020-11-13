@@ -11,7 +11,8 @@
 // See the Sample code usage restrictions document for further information.
 //
 
-import QtQuick.Controls 2.2
+import QtQuick.Controls 2.3
+import QtQuick.Controls.Material 2.3
 import Esri.GEOINTEngineer 1.0
 
 ApplicationWindow {
@@ -19,7 +20,32 @@ ApplicationWindow {
     width: 800
     height: 600
 
+    Material.theme: Material.Dark
+    Material.accent: "#a7ad6d"      // BW Hellgrün
+    //Material.accent: "#616847"      // BW Helloliv
+    Material.background: "#312d2a"  // BW Schwarz
+    Material.foreground: "#d3c2a6"  // BW Beige
+    Material.primary: "#434a39"     // BW Dunkelgrün
+
+    menuBar: MenuBar {
+        MenuItem {
+            text: qsTr("Close")
+        }
+    }
+
+    header: ToolBar {
+        Button {
+            text: qsTr("Execute")
+        }
+    }
+
     GEOINTEngineerForm {
         anchors.fill: parent
+    }
+
+    footer: TabBar {
+        Button {
+            text: qsTr("Status")
+        }
     }
 }

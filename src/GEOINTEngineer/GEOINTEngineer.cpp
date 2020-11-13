@@ -1,4 +1,3 @@
-
 // Copyright 2019 ESRI
 //
 // All rights reserved under the copyright laws of the United States
@@ -12,6 +11,7 @@
 //
 
 #include "GEOINTEngineer.h"
+#include "LocalGeospatialServer.h"
 
 #include "Basemap.h"
 #include "Map.h"
@@ -23,7 +23,8 @@ using namespace Esri::ArcGISRuntime;
 
 GEOINTEngineer::GEOINTEngineer(QObject* parent /* = nullptr */):
     QObject(parent),
-    m_map(new Map(Basemap::openStreetMap(this), this))
+    m_map(new Map(Basemap::openStreetMap(this), this)),
+    m_localGeospatialServer(new LocalGeospatialServer(this))
 {
 }
 
@@ -48,4 +49,15 @@ void GEOINTEngineer::setMapView(MapQuickView* mapView)
     m_mapView->setMap(m_map);
 
     emit mapViewChanged();
+
+    // Start the local server instance
+    switch (m_localGeospatialServer->start())
+    {
+    case LocalGeospatialServer::Status::Failed:
+        qDebug() << "Local geospatial server could not be started!";
+        break;
+
+    default:
+        break;
+    }
 }

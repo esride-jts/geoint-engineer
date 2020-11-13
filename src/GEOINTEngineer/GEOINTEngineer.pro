@@ -16,7 +16,7 @@ TEMPLATE = app
 CONFIG += c++14
 
 # additional modules are pulled in via arcgisruntime.pri
-QT += opengl qml quick
+QT += opengl qml quick quickcontrols2
 
 TARGET = GEOINTEngineer
 
@@ -33,9 +33,11 @@ ARCGIS_RUNTIME_VERSION = 100.9
 include($$PWD/arcgisruntime.pri)
 
 HEADERS += \
-    GEOINTEngineer.h
+    GEOINTEngineer.h \
+    LocalGeospatialServer.h
 
 SOURCES += \
+    LocalGeospatialServer.cpp \
     main.cpp \
     GEOINTEngineer.cpp
 

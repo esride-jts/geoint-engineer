@@ -14,6 +14,8 @@
 #ifndef GEOINTENGINEER_H
 #define GEOINTENGINEER_H
 
+class LocalGeospatialServer;
+
 namespace Esri
 {
 namespace ArcGISRuntime
@@ -44,6 +46,7 @@ private:
 
     Esri::ArcGISRuntime::Map* m_map = nullptr;
     Esri::ArcGISRuntime::MapQuickView* m_mapView = nullptr;
+    LocalGeospatialServer* m_localGeospatialServer = nullptr;
 };
 
 #endif // GEOINTENGINEER_H
