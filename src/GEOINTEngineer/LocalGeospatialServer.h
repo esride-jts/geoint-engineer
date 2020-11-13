@@ -30,6 +30,7 @@ namespace Esri
 {
 namespace ArcGISRuntime
 {
+class LicenseInfo;
 class Portal;
 }
 }
@@ -57,6 +58,12 @@ private slots:
     void statusChanged();
 
 private:
+    QString licenseFilePath() const;
+
+    void saveLicense(Esri::ArcGISRuntime::LicenseInfo const *licenseInfo);
+    void updateLicense(Esri::ArcGISRuntime::LicenseInfo const *licenseInfo, bool save);
+    bool updateLicenseFromFile();
+
     Esri::ArcGISRuntime::Portal* m_geospatialPortal;
 };
 

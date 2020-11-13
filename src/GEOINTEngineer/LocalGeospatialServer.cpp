@@ -30,6 +30,8 @@
 #include "Portal.h"
 
 #include <QDebug>
+#include <QDir>
+#include <QFile>
 #include <QProcessEnvironment>
 
 using namespace Esri::ArcGISRuntime;
@@ -37,6 +39,11 @@ using namespace Esri::ArcGISRuntime;
 LocalGeospatialServer::LocalGeospatialServer(QObject *parent) : QObject(parent)
 {
 
+}
+
+QString LocalGeospatialServer::licenseFilePath() const
+{
+    return QDir::temp().filePath("geoint-engineer-license.lic");
 }
 
 LocalGeospatialServer::Status LocalGeospatialServer::start()
@@ -48,62 +55,116 @@ LocalGeospatialServer::Status LocalGeospatialServer::start()
 
     connect(LocalServer::instance(), &LocalServer::statusChanged, this, &LocalGeospatialServer::statusChanged);
 
-    // Connect to the portal instance
-    QString portalUrlKeyName = "arcgisruntime.portal.url";
-    QProcessEnvironment systemEnvironment = QProcessEnvironment::systemEnvironment();
-    if (systemEnvironment.contains(portalUrlKeyName))
+    if (updateLicenseFromFile())
     {
-        QString portalUrl = systemEnvironment.value(portalUrlKeyName);
-
-        // Connect to the portal instance using credentials
-        QString portalUserKeyName = "arcgisruntime.portal.user";
-        QString portalSecretKeyName = "arcgisruntime.portal.secret";
-        if (systemEnvironment.contains(portalUserKeyName)
-            && systemEnvironment.contains(portalSecretKeyName))
-        {
-            QString user = systemEnvironment.value(portalUserKeyName);
-            QString secret = systemEnvironment.value(portalSecretKeyName);
-
-            Credential* portalCredential = new Credential(user, secret, this);
-            m_geospatialPortal = new Portal(portalUrl, portalCredential, this);
-        }
-        else
-        {
-            // Connect to the portal instance using SSO
-            m_geospatialPortal = new Portal(portalUrl, this);
-        }
+        // License file can be used
     }
-
-    if (nullptr != m_geospatialPortal)
+    else
     {
-        connect(m_geospatialPortal, &Portal::loadStatusChanged, this, &LocalGeospatialServer::portalStatusChanged);
-        connect(m_geospatialPortal, &Portal::fetchLicenseInfoCompleted, this, [](QUuid, const LicenseInfo& licenseInfo)
+        // Connect to the portal instance
+        QString portalUrlKeyName = "arcgisruntime.portal.url";
+        QProcessEnvironment systemEnvironment = QProcessEnvironment::systemEnvironment();
+        if (systemEnvironment.contains(portalUrlKeyName))
         {
-            LicenseResult licenseResult = ArcGISRuntimeEnvironment::setLicense(licenseInfo);
-            switch (licenseResult.licenseStatus())
+            QString portalUrl = systemEnvironment.value(portalUrlKeyName);
+
+            // Connect to the portal instance using credentials
+            QString portalUserKeyName = "arcgisruntime.portal.user";
+            QString portalSecretKeyName = "arcgisruntime.portal.secret";
+            if (systemEnvironment.contains(portalUserKeyName)
+                && systemEnvironment.contains(portalSecretKeyName))
             {
-            case LicenseStatus::Valid:
-                qDebug() << "Fetched license is valid.";
-                LocalServer::start();
-                break;
+                QString user = systemEnvironment.value(portalUserKeyName);
+                QString secret = systemEnvironment.value(portalSecretKeyName);
 
-            case LicenseStatus::LoginRequired:
-                qDebug() << "Login is required!";
-                break;
-
-            case LicenseStatus::Expired:
-                qDebug() << "License is expired!";
-                break;
-
-            case LicenseStatus::Invalid:
-                qDebug() << "License is invalid!";
-                break;
+                Credential* portalCredential = new Credential(user, secret, this);
+                m_geospatialPortal = new Portal(portalUrl, portalCredential, this);
             }
-        });
-        m_geospatialPortal->load();
+            else
+            {
+                // Connect to the portal instance using SSO
+                m_geospatialPortal = new Portal(portalUrl, this);
+            }
+        }
+
+        if (nullptr != m_geospatialPortal)
+        {
+            // License file cannot be used
+            connect(m_geospatialPortal, &Portal::loadStatusChanged, this, &LocalGeospatialServer::portalStatusChanged);
+            connect(m_geospatialPortal, &Portal::fetchLicenseInfoCompleted, this, [this](QUuid, const LicenseInfo& licenseInfo)
+            {
+                // Update and save license
+                updateLicense(&licenseInfo, true);
+            });
+            m_geospatialPortal->load();
+        }
     }
 
     return Status::Starting;
+}
+
+void LocalGeospatialServer::saveLicense(LicenseInfo const *licenseInfo)
+{
+    QString licenseAsJson = licenseInfo->toJson();
+    QFile licenseFile(licenseFilePath());
+    if (!licenseFile.open(QIODevice::WriteOnly))
+    {
+        qDebug() << "Cannot save license file!";
+        return;
+    }
+
+    licenseFile.write(licenseAsJson.toUtf8());
+    licenseFile.close();
+}
+
+void LocalGeospatialServer::updateLicense(LicenseInfo const *licenseInfo, bool save)
+{
+    LicenseResult licenseResult = ArcGISRuntimeEnvironment::setLicense(*licenseInfo);
+    switch (licenseResult.licenseStatus())
+    {
+    case LicenseStatus::Valid:
+        qDebug() << "Fetched license is valid.";
+        if (save)
+        {
+            saveLicense(licenseInfo);
+        }
+
+        // Start the local server
+        LocalServer::start();
+        break;
+
+    case LicenseStatus::LoginRequired:
+        qDebug() << "Login is required!";
+        break;
+
+    case LicenseStatus::Expired:
+        qDebug() << "License is expired!";
+        break;
+
+    case LicenseStatus::Invalid:
+        qDebug() << "License is invalid!";
+        break;
+    }
+}
+
+bool LocalGeospatialServer::updateLicenseFromFile()
+{
+    QFile licenseFile(licenseFilePath());
+    if (licenseFile.exists())
+    {
+        qDebug() << licenseFile.fileName();
+        licenseFile.open(QIODevice::ReadOnly);
+        LicenseInfo licenseInfo = LicenseInfo::fromJson(licenseFile.readAll());
+        LicenseResult licenseResult = ArcGISRuntimeEnvironment::setLicense(licenseInfo);
+        if (LicenseStatus::Valid == licenseResult.licenseStatus())
+        {
+            // Start the local server
+            LocalServer::start();
+            return true;
+        }
+    }
+
+    return false;
 }
 
 void LocalGeospatialServer::portalStatusChanged()
