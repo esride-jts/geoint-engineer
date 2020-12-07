@@ -26,6 +26,7 @@
 #include "LocalGeospatialServer.h"
 
 #include "ArcGISRuntimeEnvironment.h"
+#include "GeoprocessingTask.h"
 #include "LocalGeoprocessingService.h"
 #include "LocalServer.h"
 #include "Portal.h"
@@ -33,13 +34,19 @@
 #include <QDebug>
 #include <QDir>
 #include <QFile>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QNetworkReply>
+#include <QNetworkRequest>
 #include <QProcessEnvironment>
 
 using namespace Esri::ArcGISRuntime;
 
-LocalGeospatialServer::LocalGeospatialServer(QObject *parent) : QObject(parent)
+LocalGeospatialServer::LocalGeospatialServer(QObject *parent) :
+    QObject(parent),
+    m_networkAccessManager(new QNetworkAccessManager(this))
 {
-
+    connect(m_networkAccessManager, &QNetworkAccessManager::finished, this, &LocalGeospatialServer::networkRequestFinished);
 }
 
 QFileInfoList LocalGeospatialServer::geoprocessingPackages() const
@@ -131,7 +138,7 @@ void LocalGeospatialServer::startGeoprocessing()
         QString packageFilePath = fileInfo.absoluteFilePath();
         qDebug() << packageFilePath;
         LocalGeoprocessingService* localGpService = new LocalGeoprocessingService(packageFilePath, this);
-        connect(localGpService, &LocalGeoprocessingService::statusChanged, this, [localGpService]()
+        connect(localGpService, &LocalGeoprocessingService::statusChanged, this, [this, localGpService]()
         {
             switch (localGpService->status())
             {
@@ -142,6 +149,7 @@ void LocalGeospatialServer::startGeoprocessing()
             case LocalServerStatus::Started:
                 qDebug() << "Local geospatial service " << localGpService->name() << " started.";
                 qDebug() << localGpService->url();
+                addGeoprocessingTasks(localGpService);
                 break;
 
             case LocalServerStatus::Stopping:
@@ -224,6 +232,119 @@ bool LocalGeospatialServer::updateLicenseFromFile()
     }
 
     return false;
+}
+
+void LocalGeospatialServer::addGeoprocessingTasks(LocalGeoprocessingService *geoprocessingService)
+{
+    QString infoEndpoint = geoprocessingService->url().toString() + "?f=json";
+    QNetworkRequest geoprocessingInfoRequest(infoEndpoint);
+    m_networkAccessManager->get(geoprocessingInfoRequest);
+}
+
+void LocalGeospatialServer::networkRequestFinished(QNetworkReply *networkReply)
+{
+    if (networkReply->error())
+    {
+        qDebug() << networkReply->errorString();
+        return;
+    }
+
+    QByteArray jsonResponse = networkReply->readAll();
+    QJsonDocument geoprocessingServiceDocument = QJsonDocument::fromJson(jsonResponse);
+    if (geoprocessingServiceDocument.isNull())
+    {
+        qDebug() << "JSON is invalid!";
+        return;
+    }
+    if (!geoprocessingServiceDocument.isObject())
+    {
+        qDebug() << "JSON document is not an object!";
+        return;
+    }
+
+    QJsonObject geoprocessingServiceObject = geoprocessingServiceDocument.object();
+    QJsonArray geoprocessingTasksArray = geoprocessingServiceObject["tasks"].toArray();
+    foreach (const QJsonValue &taskValue, geoprocessingTasksArray)
+    {
+        QUrl geoprocessingServiceUrl = networkReply->url();
+        QString geoprocessingTaskEndpoint = geoprocessingServiceUrl.scheme()
+                + "://" + networkReply->url().authority()
+                + networkReply->url().path()
+                + "/" + taskValue.toString();
+        qDebug() << geoprocessingTaskEndpoint;
+
+        GeoprocessingTask *geoprocessingTask = new GeoprocessingTask(QUrl(geoprocessingTaskEndpoint), this);
+        connect(geoprocessingTask, &GeoprocessingTask::loadStatusChanged, this, [this, geoprocessingTask]()
+        {
+            LoadStatus taskLoadStatus = geoprocessingTask->loadStatus();
+            logLoadStatus("GP task ", taskLoadStatus);
+
+            switch (taskLoadStatus)
+            {
+            case LoadStatus::Loaded:
+                m_geoprocessingTasks.append(geoprocessingTask);
+                logGeoprocessingTaskInfos();
+                break;
+            default:
+                return;
+            }
+        });
+        geoprocessingTask->load();
+    }
+}
+
+void LocalGeospatialServer::logGeoprocessingTaskInfos()
+{
+    foreach (GeoprocessingTask const *geoprocessingTask, m_geoprocessingTasks)
+    {
+        GeoprocessingTaskInfo taskInfo = geoprocessingTask->geoprocessingTaskInfo();
+        QList<GeoprocessingParameterInfo> taskParameterInfos = taskInfo.parameterInfos();
+        qDebug() << taskInfo.name();
+        foreach (GeoprocessingParameterInfo const &parameterInfo, taskParameterInfos)
+        {
+            qDebug() << parameterInfo.name();
+            //qDebug() << QVariant::fromValue(parameterInfo.dataType()).toString();
+            switch (parameterInfo.dataType())
+            {
+            case GeoprocessingParameterType::GeoprocessingString:
+                qDebug() << "GeoprocessingString";
+                break;
+
+            case GeoprocessingParameterType::GeoprocessingFeatures:
+                qDebug() << "GeoprocessingFeatures";
+                break;
+
+            default:
+                break;
+            }
+        }
+    }
+}
+
+void LocalGeospatialServer::logLoadStatus(QString const &prefix, Esri::ArcGISRuntime::LoadStatus loadStatus)
+{
+    switch (loadStatus)
+    {
+    case LoadStatus::Loading:
+        qDebug() << (prefix + "loading...");
+        break;
+
+    case LoadStatus::Loaded:
+        qDebug() << (prefix + "loaded.");
+        break;
+
+    case LoadStatus::NotLoaded:
+        qDebug() << (prefix + "not loaded.");
+        break;
+
+    case LoadStatus::FailedToLoad:
+        qDebug() << (prefix + "failed to load!");
+        break;
+
+    case LoadStatus::Unknown:
+        qDebug() << (prefix + "status unknown?");
+        break;
+    }
 }
 
 void LocalGeospatialServer::portalStatusChanged()

@@ -30,12 +30,16 @@ namespace Esri
 {
 namespace ArcGISRuntime
 {
+class GeoprocessingTask;
 class LicenseInfo;
+enum class LoadStatus;
+class LocalGeoprocessingService;
 class Portal;
 }
 }
 
 #include <QFileInfoList>
+#include <QNetworkAccessManager>
 #include <QObject>
 
 class LocalGeospatialServer : public QObject
@@ -55,6 +59,7 @@ public:
 signals:
 
 private slots:
+    void networkRequestFinished(QNetworkReply *networkReply);
     void portalStatusChanged();
     void statusChanged();
 
@@ -68,7 +73,14 @@ private:
     void updateLicense(Esri::ArcGISRuntime::LicenseInfo const *licenseInfo, bool save);
     bool updateLicenseFromFile();
 
+    void addGeoprocessingTasks(Esri::ArcGISRuntime::LocalGeoprocessingService *geoprocessingService);
+
+    void logGeoprocessingTaskInfos();
+    void logLoadStatus(QString const &prefix, Esri::ArcGISRuntime::LoadStatus loadStatus);
+
     Esri::ArcGISRuntime::Portal* m_geospatialPortal;
+    QList<Esri::ArcGISRuntime::GeoprocessingTask*> m_geoprocessingTasks;
+    QNetworkAccessManager* m_networkAccessManager;
 };
 
 #endif // LOCALGEOSPATIALSERVER_H
