@@ -17,6 +17,10 @@ import Esri.GEOINTEngineer 1.0
 
 Item {
 
+    function executeAllTasks() {
+        model.executeAllTasks();
+    }
+
     // Create MapQuickView here, and create its Map etc. in C++ code
     MapView {
         id: view

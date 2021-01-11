@@ -30,6 +30,7 @@ namespace Esri
 {
 namespace ArcGISRuntime
 {
+class GeoprocessingFeatures;
 class GeoprocessingTask;
 class LicenseInfo;
 enum class LoadStatus;
@@ -56,7 +57,10 @@ public:
     };
     Status start();
 
+    void executeTasks(Esri::ArcGISRuntime::GeoprocessingFeatures *inputFeatures);
+
 signals:
+    void taskCompleted(Esri::ArcGISRuntime::GeoprocessingFeatures *outputFeatures);
 
 private slots:
     void networkRequestFinished(QNetworkReply *networkReply);
@@ -80,6 +84,7 @@ private:
 
     Esri::ArcGISRuntime::Portal* m_geospatialPortal;
     QList<Esri::ArcGISRuntime::GeoprocessingTask*> m_geoprocessingTasks;
+    //QList<Esri::ArcGISRuntime::
     QNetworkAccessManager* m_networkAccessManager;
 };
 

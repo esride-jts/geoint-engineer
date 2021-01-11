@@ -36,10 +36,15 @@ ApplicationWindow {
     header: ToolBar {
         Button {
             text: qsTr("Execute")
+
+            onClicked: {
+                engineerForm.executeAllTasks();
+            }
         }
     }
 
     GEOINTEngineerForm {
+        id: engineerForm
         anchors.fill: parent
     }
 

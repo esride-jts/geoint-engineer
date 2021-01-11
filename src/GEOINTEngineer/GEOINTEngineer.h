@@ -20,6 +20,7 @@ namespace Esri
 {
 namespace ArcGISRuntime
 {
+class GeoprocessingFeatures;
 class Map;
 class MapQuickView;
 }
@@ -37,8 +38,13 @@ public:
     explicit GEOINTEngineer(QObject* parent = nullptr);
     ~GEOINTEngineer() override;
 
+    Q_INVOKABLE void executeAllTasks();
+
 signals:
     void mapViewChanged();
+
+private slots:
+    void onTaskCompleted(Esri::ArcGISRuntime::GeoprocessingFeatures* outputFeatures);
 
 private:
     Esri::ArcGISRuntime::MapQuickView* mapView() const;

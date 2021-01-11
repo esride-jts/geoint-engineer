@@ -14,8 +14,15 @@
 #include "LocalGeospatialServer.h"
 
 #include "Basemap.h"
+#include "FeatureCollectionLayer.h"
+#include "FeatureCollectionTable.h"
+#include "GeoprocessingFeatures.h"
 #include "Map.h"
 #include "MapQuickView.h"
+#include "PolygonBuilder.h"
+#include "SimpleFillSymbol.h"
+#include "SimpleLineSymbol.h"
+#include "SimpleRenderer.h"
 
 #include <QUrl>
 
@@ -26,6 +33,7 @@ GEOINTEngineer::GEOINTEngineer(QObject* parent /* = nullptr */):
     m_map(new Map(Basemap::openStreetMap(this), this)),
     m_localGeospatialServer(new LocalGeospatialServer(this))
 {
+    connect(m_localGeospatialServer, &LocalGeospatialServer::taskCompleted, this, &GEOINTEngineer::onTaskCompleted);
 }
 
 GEOINTEngineer::~GEOINTEngineer()
@@ -60,4 +68,82 @@ void GEOINTEngineer::setMapView(MapQuickView* mapView)
     default:
         break;
     }
+}
+
+void GEOINTEngineer::executeAllTasks()
+{
+    // TODO: Release from memory
+    m_map->operationalLayers()->clear();
+
+    FeatureCollection* inputFeatureCollection = new FeatureCollection(this);
+    FeatureCollectionLayer* inputFeatureLayer = new FeatureCollectionLayer(inputFeatureCollection, this);
+    m_map->operationalLayers()->append(inputFeatureLayer);
+
+    QList<Field> fields;
+    fields.append(Field::createText("Description", "Description", 0));
+    FeatureCollectionTable* inputFeatures = new FeatureCollectionTable(fields, GeometryType::Polygon, m_mapView->spatialReference(), this);
+    SimpleLineSymbol* envelopeBoundarySymbol = new SimpleLineSymbol(SimpleLineSymbolStyle::Solid, QColor("cyan"), 2.0, this);
+    SimpleFillSymbol* envelopeSymbol = new SimpleFillSymbol(SimpleFillSymbolStyle::DiagonalCross, QColor("cyan"), envelopeBoundarySymbol, this);
+    SimpleRenderer* envelopeRenderer = new SimpleRenderer(envelopeSymbol, this);
+    inputFeatures->setRenderer(envelopeRenderer);
+
+    connect(inputFeatureLayer, &FeatureCollectionLayer::loadStatusChanged, this, [this, inputFeatures](LoadStatus loadStatus)
+    {
+        switch (loadStatus)
+        {
+        case LoadStatus::Loaded:
+            {
+                qDebug() << "Input features loaded.";
+                Viewpoint boundingViewpoint = m_mapView->currentViewpoint(ViewpointType::BoundingGeometry);
+                Envelope boundingBox = boundingViewpoint.targetGeometry();
+                PolygonBuilder* polygonBuilder = new PolygonBuilder(boundingBox.spatialReference(), this);
+                polygonBuilder->addPoint(boundingBox.xMin(), boundingBox.yMin());
+                polygonBuilder->addPoint(boundingBox.xMin(), boundingBox.yMax());
+                polygonBuilder->addPoint(boundingBox.xMax(), boundingBox.yMax());
+                polygonBuilder->addPoint(boundingBox.xMax(), boundingBox.yMin());
+                Polygon envelopeAsPolygon = polygonBuilder->toPolygon();
+                QVariantMap emptyAttributes;
+                Feature* envelopeAsFeature = inputFeatures->createFeature(this);
+                envelopeAsFeature->setGeometry(envelopeAsPolygon);
+                qDebug() << envelopeAsPolygon.isEmpty();
+                qDebug() << envelopeAsPolygon.spatialReference().toJson();
+
+                connect(inputFeatures, &FeatureCollectionTable::addFeatureCompleted, this, [this, inputFeatures](QUuid, bool succeeded)
+                {
+                    if (succeeded)
+                    {
+                        qDebug() << "Executing all tasks using the current map extent...";
+                        GeoprocessingFeatures* mapExtentAsFeatures = new GeoprocessingFeatures(inputFeatures, this);
+                        m_localGeospatialServer->executeTasks(mapExtentAsFeatures);
+                        return;
+                    }
+
+                    qDebug() << "Added the current map extent as feature failed!";
+                });
+                inputFeatures->addFeature(envelopeAsFeature);
+            }
+            break;
+
+        default:
+            qDebug() << "Load status...";
+            return;
+        }
+    });
+    //inputFeatures->load();
+    qDebug() << "Loading input features...";
+    inputFeatureCollection->tables()->append(inputFeatures);
+
+}
+
+void GEOINTEngineer::onTaskCompleted(Esri::ArcGISRuntime::GeoprocessingFeatures* outputFeatures)
+{
+    // TODO: Release from memory
+    m_map->operationalLayers()->clear();
+
+    FeatureSet* outputFeatureSet = outputFeatures->features();
+    FeatureCollectionTable* newResultFeatures = new FeatureCollectionTable(outputFeatureSet, this);
+    FeatureCollection* outputFeatureCollection = new FeatureCollection(this);
+    outputFeatureCollection->tables()->append(newResultFeatures);
+    FeatureCollectionLayer* outputFeatureLayer = new FeatureCollectionLayer(outputFeatureCollection, this);
+    m_map->operationalLayers()->append(outputFeatureLayer);
 }
