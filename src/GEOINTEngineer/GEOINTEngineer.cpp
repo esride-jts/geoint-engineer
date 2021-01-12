@@ -129,12 +129,14 @@ QList<Feature*> GEOINTEngineer::extractFeatures(FeatureQueryResult *queryResult)
     }
 
     // iterate over the result object
+    QObject *lifetimeManager = new QObject();
     while(queryResult->iterator().hasNext())
     {
-        Feature* feature = queryResult->iterator().next(this);
+        Feature* feature = queryResult->iterator().next(lifetimeManager);
         features.append(feature);
     }
 
+    delete uniqueQueryResult.release();
     return features;
 }
 
@@ -178,12 +180,25 @@ void GEOINTEngineer::onQueryFeaturesCompleted(QUuid, FeatureQueryResult *queryRe
         return;
     }
 
+    // "DB-Delete" all features from the table
+    // Schedule release memory when the task was completed
+    // All features have the same parent
     Feature *firstFeature = featuresForDeletion[0];
-    firstFeature->featureTable()->deleteFeatures(featuresForDeletion);
+    QUuid taskId = firstFeature->featureTable()->deleteFeatures(featuresForDeletion).taskId();
+    m_featuresLifetimes.insert(taskId, firstFeature->parent());
 }
 
-void GEOINTEngineer::onFeaturesDeleted(QUuid, bool deleted)
+void GEOINTEngineer::onFeaturesDeleted(QUuid taskId, bool deleted)
 {
+    // Release the memory for the features
+    if (m_featuresLifetimes.contains(taskId))
+    {
+        QObject *lifetimeManager = m_featuresLifetimes.value(taskId);
+        m_featuresLifetimes.remove(taskId);
+        delete lifetimeManager;
+        qDebug() << "Features for task " << taskId << " were released from memory.";
+    }
+
     if (deleted)
     {
         executeTasksUsingCurrentExtent();

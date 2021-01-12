@@ -30,6 +30,7 @@ class MapQuickView;
 }
 }
 
+#include <QMap>
 #include <QObject>
 #include <QUuid>
 
@@ -71,6 +72,7 @@ private:
     Esri::ArcGISRuntime::FeatureCollectionTable* m_inputFeatures = nullptr;
     Esri::ArcGISRuntime::FeatureCollectionLayer* m_outputFeatureLayer = nullptr;
     Esri::ArcGISRuntime::FeatureCollectionTable* m_ouputFeatures = nullptr;
+    QMap<QUuid, QObject*> m_featuresLifetimes;
     LocalGeospatialServer* m_localGeospatialServer = nullptr;
 };
 
