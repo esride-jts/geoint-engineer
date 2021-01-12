@@ -20,6 +20,10 @@ namespace Esri
 {
 namespace ArcGISRuntime
 {
+class Feature;
+class FeatureCollectionLayer;
+class FeatureCollectionTable;
+class FeatureQueryResult;
 class GeoprocessingFeatures;
 class Map;
 class MapQuickView;
@@ -27,6 +31,7 @@ class MapQuickView;
 }
 
 #include <QObject>
+#include <QUuid>
 
 class GEOINTEngineer : public QObject
 {
@@ -44,14 +49,28 @@ signals:
     void mapViewChanged();
 
 private slots:
+    void onQueryFeaturesCompleted(QUuid, Esri::ArcGISRuntime::FeatureQueryResult* queryResult);
+    void onFeaturesDeleted(QUuid, bool);
+    void onInputFeatureAdded(QUuid, bool);
     void onTaskCompleted(Esri::ArcGISRuntime::GeoprocessingFeatures* outputFeatures);
 
 private:
+    void executeTasksUsingCurrentExtent();
+    void initOperationalLayers();
+    void deleteAllInputFeatures();
+    void deleteAllOutputFeatures();
+    void deleteAllFeatures();
+    QList<Esri::ArcGISRuntime::Feature*> extractFeatures(Esri::ArcGISRuntime::FeatureQueryResult* queryResult);
+
     Esri::ArcGISRuntime::MapQuickView* mapView() const;
     void setMapView(Esri::ArcGISRuntime::MapQuickView* mapView);
 
     Esri::ArcGISRuntime::Map* m_map = nullptr;
     Esri::ArcGISRuntime::MapQuickView* m_mapView = nullptr;
+    Esri::ArcGISRuntime::FeatureCollectionLayer* m_inputFeatureLayer = nullptr;
+    Esri::ArcGISRuntime::FeatureCollectionTable* m_inputFeatures = nullptr;
+    Esri::ArcGISRuntime::FeatureCollectionLayer* m_outputFeatureLayer = nullptr;
+    Esri::ArcGISRuntime::FeatureCollectionTable* m_ouputFeatures = nullptr;
     LocalGeospatialServer* m_localGeospatialServer = nullptr;
 };
 

@@ -39,9 +39,12 @@ class Portal;
 }
 }
 
+class LocalGeospatialTask;
+
 #include <QFileInfoList>
 #include <QNetworkAccessManager>
 #include <QObject>
+#include <QUuid>
 
 class LocalGeospatialServer : public QObject
 {
@@ -66,6 +69,7 @@ private slots:
     void networkRequestFinished(QNetworkReply *networkReply);
     void portalStatusChanged();
     void statusChanged();
+    void localTaskCompleted(Esri::ArcGISRuntime::GeoprocessingFeatures *outputFeatures);
 
 private:
     QString licenseFilePath() const;
@@ -83,8 +87,7 @@ private:
     void logLoadStatus(QString const &prefix, Esri::ArcGISRuntime::LoadStatus loadStatus);
 
     Esri::ArcGISRuntime::Portal* m_geospatialPortal;
-    QList<Esri::ArcGISRuntime::GeoprocessingTask*> m_geoprocessingTasks;
-    //QList<Esri::ArcGISRuntime::
+    QList<LocalGeospatialTask*> m_geospatialTasks;
     QNetworkAccessManager* m_networkAccessManager;
 };
 

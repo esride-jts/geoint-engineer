@@ -24,6 +24,7 @@
 //
 
 #include "LocalGeospatialServer.h"
+#include "LocalGeospatialTask.h"
 
 #include "ArcGISRuntimeEnvironment.h"
 #include "GeoprocessingFeatures.h"
@@ -133,91 +134,11 @@ LocalGeospatialServer::Status LocalGeospatialServer::start()
 
 void LocalGeospatialServer::executeTasks(GeoprocessingFeatures *inputFeatures)
 {
-    foreach (GeoprocessingTask *geoprocessingTask, m_geoprocessingTasks)
+    foreach (LocalGeospatialTask *geospatialTask, m_geospatialTasks)
     {
-        GeoprocessingTaskInfo taskInfo = geoprocessingTask->geoprocessingTaskInfo();
-        QList<GeoprocessingParameterInfo> taskParameterInfos = taskInfo.parameterInfos();
-        foreach (GeoprocessingParameterInfo const &parameterInfo, taskParameterInfos)
+        if (geospatialTask->hasInputFeaturesParameter())
         {
-            switch(parameterInfo.direction())
-            {
-            case GeoprocessingParameterDirection::Input:
-                switch (parameterInfo.dataType())
-                {
-                case GeoprocessingParameterType::GeoprocessingFeatures:
-                    // Input parameter type is features
-                    connect(geoprocessingTask, &GeoprocessingTask::createDefaultParametersCompleted, this, [this, geoprocessingTask, taskInfo, parameterInfo, inputFeatures](QUuid, const GeoprocessingParameters &defaultInputParameters)
-                    {
-                        qDebug() << "Geoprocessing input parameters" << taskInfo.name() << "created.";
-                        QMap<QString, GeoprocessingParameter*> inputs = defaultInputParameters.inputs();
-                        inputs.insert(parameterInfo.name(), inputFeatures);
-                        GeoprocessingParameters inputParameters(defaultInputParameters.executionType());
-                        inputParameters.setInputs(inputs);
-
-                        GeoprocessingJob* newGeoprocessingJob = geoprocessingTask->createJob(inputParameters);
-                        connect(newGeoprocessingJob, &GeoprocessingJob::jobDone, this, [this, newGeoprocessingJob]()
-                        {
-                            switch (newGeoprocessingJob->jobStatus())
-                            {
-                            case JobStatus::Started:
-                                qDebug() << "Geoprocessing job " << newGeoprocessingJob->serverJobId() << " started.";
-                                break;
-
-                            case JobStatus::NotStarted:
-                                qDebug() << "Geoprocessing job " << newGeoprocessingJob->serverJobId() << " not started.";
-                                break;
-
-                            case JobStatus::Paused:
-                                qDebug() << "Geoprocessing job " << newGeoprocessingJob->serverJobId() << " paused.";
-                                break;
-
-                            case JobStatus::Succeeded:
-                                {
-                                    qDebug() << "Geoprocessing job " << newGeoprocessingJob->serverJobId() << " succeeded.";
-                                    GeoprocessingResult* newGeoprocessingResult = newGeoprocessingJob->result();
-                                    QMap<QString, GeoprocessingParameter*> outputs = newGeoprocessingResult->outputs();
-                                    foreach (GeoprocessingParameter const *outputParameter, outputs.values())
-                                    {
-                                        switch (outputParameter->parameterType())
-                                        {
-                                        case GeoprocessingParameterType::GeoprocessingFeatures:
-                                            {
-                                                GeoprocessingFeatures *outputFeatures = (GeoprocessingFeatures*)outputParameter;
-                                                if (nullptr != outputFeatures)
-                                                {
-                                                    // Emit that a task with features as output succeeded
-                                                    emit taskCompleted(outputFeatures);
-                                                }
-                                            }
-                                            break;
-
-                                        default:
-                                            break;
-                                        }
-                                    }
-                                }
-                                break;
-
-                            case JobStatus::Failed:
-                                qDebug() << "Geoprocessing job " << newGeoprocessingJob->serverJobId() << " failed!";
-                                break;
-                            }
-                        });
-
-                        qDebug() << "Geoprocessing job " << newGeoprocessingJob->serverJobId() << " starting...";
-                        newGeoprocessingJob->start();
-                    });
-                    geoprocessingTask->createDefaultParameters();
-                    break;
-
-                default:
-                    break;
-                }
-                break;
-
-            default:
-                break;
-            }
+            geospatialTask->executeTask(inputFeatures);
         }
     }
 }
@@ -374,8 +295,13 @@ void LocalGeospatialServer::networkRequestFinished(QNetworkReply *networkReply)
             switch (taskLoadStatus)
             {
             case LoadStatus::Loaded:
-                m_geoprocessingTasks.append(geoprocessingTask);
-                logGeoprocessingTaskInfos();
+                {
+                    // Add a new geospatial task
+                    LocalGeospatialTask *geospatialTask = new LocalGeospatialTask(geoprocessingTask, this);
+                    connect(geospatialTask, &LocalGeospatialTask::taskCompleted, this, &LocalGeospatialServer::localTaskCompleted);
+                    m_geospatialTasks.append(geospatialTask);
+                    logGeoprocessingTaskInfos();
+                }
                 break;
             default:
                 return;
@@ -387,29 +313,9 @@ void LocalGeospatialServer::networkRequestFinished(QNetworkReply *networkReply)
 
 void LocalGeospatialServer::logGeoprocessingTaskInfos()
 {
-    foreach (GeoprocessingTask const *geoprocessingTask, m_geoprocessingTasks)
+    foreach (LocalGeospatialTask const *geospatialTask, m_geospatialTasks)
     {
-        GeoprocessingTaskInfo taskInfo = geoprocessingTask->geoprocessingTaskInfo();
-        QList<GeoprocessingParameterInfo> taskParameterInfos = taskInfo.parameterInfos();
-        qDebug() << taskInfo.name();
-        foreach (GeoprocessingParameterInfo const &parameterInfo, taskParameterInfos)
-        {
-            qDebug() << parameterInfo.name();
-            //qDebug() << QVariant::fromValue(parameterInfo.dataType()).toString();
-            switch (parameterInfo.dataType())
-            {
-            case GeoprocessingParameterType::GeoprocessingString:
-                qDebug() << "GeoprocessingString";
-                break;
-
-            case GeoprocessingParameterType::GeoprocessingFeatures:
-                qDebug() << "GeoprocessingFeatures";
-                break;
-
-            default:
-                break;
-            }
-        }
+        geospatialTask->logInfos();
     }
 }
 
@@ -492,4 +398,9 @@ void LocalGeospatialServer::statusChanged()
         qDebug() << LocalServer::installPath();
         break;
     }
+}
+
+void LocalGeospatialServer::localTaskCompleted(GeoprocessingFeatures *outputFeatures)
+{
+    emit taskCompleted(outputFeatures);
 }
