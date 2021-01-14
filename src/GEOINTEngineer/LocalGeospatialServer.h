@@ -30,6 +30,7 @@ namespace Esri
 {
 namespace ArcGISRuntime
 {
+class ArcGISMapImageLayer;
 class GeoprocessingFeatures;
 class GeoprocessingTask;
 class GeoprocessingResult;
@@ -66,6 +67,7 @@ public:
 
 signals:
     void mapLoaded(Esri::ArcGISRuntime::Map *map);
+    void mapServiceLoaded(Esri::ArcGISRuntime::ArcGISMapImageLayer *mapImageLayer);
     void taskCompleted(Esri::ArcGISRuntime::GeoprocessingResult *result);
 
 private slots:
@@ -83,6 +85,7 @@ private:
     void startMapping();
 
     QFileInfoList mapPackages() const;
+    QFileInfoList mobileMapPackages() const;
 
     void saveLicense(Esri::ArcGISRuntime::LicenseInfo const *licenseInfo);
     void updateLicense(Esri::ArcGISRuntime::LicenseInfo const *licenseInfo, bool save);

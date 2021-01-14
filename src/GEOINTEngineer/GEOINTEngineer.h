@@ -20,6 +20,7 @@ namespace Esri
 {
 namespace ArcGISRuntime
 {
+class ArcGISMapImageLayer;
 class Feature;
 class FeatureCollectionLayer;
 class FeatureCollectionTable;
@@ -55,6 +56,7 @@ private slots:
     void onFeaturesDeleted(QUuid, bool);
     void onInputFeatureAdded(QUuid, bool);
     void onMapLoaded(Esri::ArcGISRuntime::Map* map);
+    void onMapServiceLoaded(Esri::ArcGISRuntime::ArcGISMapImageLayer* mapImageLayer);
     void onTaskCompleted(Esri::ArcGISRuntime::GeoprocessingResult* result);
 
 private:

@@ -40,6 +40,7 @@ GEOINTEngineer::GEOINTEngineer(QObject* parent /* = nullptr */):
     m_operationalLayerInitialized(false)
 {
     connect(m_localGeospatialServer, &LocalGeospatialServer::mapLoaded, this, &GEOINTEngineer::onMapLoaded);
+    connect(m_localGeospatialServer, &LocalGeospatialServer::mapServiceLoaded, this, &GEOINTEngineer::onMapServiceLoaded);
     connect(m_localGeospatialServer, &LocalGeospatialServer::taskCompleted, this, &GEOINTEngineer::onTaskCompleted);
 }
 
@@ -237,6 +238,14 @@ void GEOINTEngineer::onMapLoaded(Map* map)
             delete m_map;
         }
         m_map = map;
+    }
+}
+
+void GEOINTEngineer::onMapServiceLoaded(ArcGISMapImageLayer* mapImageLayer)
+{
+    if (nullptr != m_map)
+    {
+        m_map->operationalLayers()->append(mapImageLayer);
     }
 }
 

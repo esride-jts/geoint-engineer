@@ -30,6 +30,7 @@
 #include "GeoprocessingFeatures.h"
 #include "GeoprocessingTask.h"
 #include "LocalGeoprocessingService.h"
+#include "LocalMapService.h"
 #include "LocalServer.h"
 #include "MobileMapPackage.h"
 #include "Portal.h"
@@ -79,6 +80,19 @@ QFileInfoList LocalGeospatialServer::geoprocessingPackages() const
 }
 
 QFileInfoList LocalGeospatialServer::mapPackages() const
+{
+    QString pathKeyName = "geoint.datapath";
+    QProcessEnvironment systemEnvironment = QProcessEnvironment::systemEnvironment();
+    if (systemEnvironment.contains(pathKeyName))
+    {
+        QString directoryPath = systemEnvironment.value(pathKeyName);
+        return listFiles(directoryPath, "*.mpkx");
+    }
+
+    return QFileInfoList();
+}
+
+QFileInfoList LocalGeospatialServer::mobileMapPackages() const
 {
     QString pathKeyName = "geoint.datapath";
     QProcessEnvironment systemEnvironment = QProcessEnvironment::systemEnvironment();
@@ -174,8 +188,8 @@ void LocalGeospatialServer::startGeoprocessing()
         qDebug() << packageFilePath;
         LocalGeoprocessingService *localGpService = new LocalGeoprocessingService(packageFilePath, this);
         // TODO: When is map server result supported?
-        //localGpService->setServiceType(GeoprocessingServiceType::AsynchronousSubmitWithMapServerResult);
-        localGpService->setServiceType(GeoprocessingServiceType::SynchronousExecute);
+        localGpService->setServiceType(GeoprocessingServiceType::AsynchronousSubmitWithMapServerResult);
+        //localGpService->setServiceType(GeoprocessingServiceType::SynchronousExecute);
         connect(localGpService, &LocalGeoprocessingService::statusChanged, this, [this, localGpService]()
         {
             switch (localGpService->status())
@@ -210,8 +224,8 @@ void LocalGeospatialServer::startGeoprocessing()
 
 void LocalGeospatialServer::startMapping()
 {
-    QFileInfoList packages = mapPackages();
-    foreach (QFileInfo const &fileInfo, packages)
+    QFileInfoList mobileMapPackages = this->mobileMapPackages();
+    foreach (QFileInfo const &fileInfo, mobileMapPackages)
     {
         // Create a new local geoprocessing service with map server results
         QString packageFilePath = fileInfo.absoluteFilePath();
@@ -222,7 +236,7 @@ void LocalGeospatialServer::startMapping()
             {
             case LoadStatus::Loaded:
                 {
-                    qDebug() << "Local map package " << packageFilePath << " loaded.";
+                    qDebug() << "Local mobile map package " << packageFilePath << " loaded.";
                     QList<Map*> offlineMaps = mobileMapPackage->maps();
                     foreach (Map *offlineMap, offlineMaps)
                     {
@@ -236,6 +250,51 @@ void LocalGeospatialServer::startMapping()
             }
         });
         mobileMapPackage->load();
+    }
+
+    QFileInfoList mapPackages = this->mapPackages();
+    foreach (QFileInfo const &fileInfo, mapPackages)
+    {
+        // Create a new local geoprocessing service with map server results
+        QString packageFilePath = fileInfo.absoluteFilePath();
+        LocalMapService *localMapService = new LocalMapService(packageFilePath, this);
+        qDebug() << packageFilePath;
+        connect(localMapService, &LocalMapService::statusChanged, this, [packageFilePath, localMapService, this]()
+        {
+            switch (localMapService->status())
+            {
+            case LocalServerStatus::Started:
+                {
+                    qDebug() << "Local map server using " << packageFilePath << " started.";
+                    ArcGISMapImageLayer *mapImageLayer = new ArcGISMapImageLayer(localMapService->url(), this);
+                    connect(mapImageLayer, &ArcGISMapImageLayer::loadStatusChanged, this, [this, mapImageLayer](LoadStatus loadStatus)
+                    {
+                        switch (loadStatus)
+                        {
+                        case LoadStatus::Loaded:
+                            {
+                                qDebug() << "Local map service " << mapImageLayer->url() << " loaded.";
+                                emit mapServiceLoaded(mapImageLayer);
+                            }
+                            break;
+
+                        default:
+                            break;
+                        }
+                    });
+                    mapImageLayer->load();
+                }
+                break;
+
+            case LocalServerStatus::Failed:
+                qDebug() << "Local map server using " << packageFilePath << " failed!";
+                break;
+
+            default:
+                break;
+            }
+        });
+        localMapService->start();
     }
 }
 
