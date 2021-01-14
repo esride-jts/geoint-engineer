@@ -63,35 +63,72 @@ ApplicationWindow {
                 Layout.fillWidth: false
                 Layout.preferredWidth: 300
 
-                StackView {
-                    id: stack
-                    initialItem: gpTool1
-                    Layout.fillHeight: true
-                    Layout.fillWidth: true
+                RowLayout {
+                    Layout.preferredWidth: parent.Layout.preferredWidth
+
+                    Button {
+                        Layout.alignment: Qt.AlignLeft
+                        text: qsTr("<")
+                        enabled: 0 < stackLayout.currentIndex
+                        onClicked: stackLayout.currentIndex--
+                    }
+
+                    Button {
+                        Layout.alignment: Qt.AlignRight
+                        text: qsTr(">")
+                        enabled: stackLayout.currentIndex < stackLayout.count - 1
+                        onClicked: stackLayout.currentIndex++
+                    }
                 }
 
-                Component {
-                    id: gpTool1
+                StackLayout {
+                    id: stackLayout
+                    currentIndex: 1
 
-                    ColumnLayout {
+                    Rectangle {
+                            color: 'teal'
+                            implicitWidth: 200
+                            implicitHeight: 200
+                        }
+                        Rectangle {
+                            color: 'plum'
+                            implicitWidth: 300
+                            implicitHeight: 200
+                        }
+                    /*
+                    Item {
+                        id: gpTool1
+
+                        ColumnLayout {
+                            Button {
+                                Layout.alignment: Qt.AlignTop | Qt.AlignLeft
+                                text: qsTr("<")
+                            }
+
+                            Button {
+                                Layout.alignment: Qt.AlignBottom | Qt.AlignRight
+                                text: qsTr("Execute")
+                            }
+                        }
+                    }
+                    Item {
+                        id: gpTool2
                         Button {
-                            Layout.alignment: Qt.AlignBottom | Qt.AlignRight
                             text: qsTr("Execute")
                         }
                     }
+                    Item {
+                        id: gpTool3s
+                        Button {
+                            text: qsTr("Execute")
+                        }
+                    }*/
                 }
-                Component {
-                    id: gpTool2
-                    Button {
-                        text: qsTr("Execute")
+
+                PageIndicator {
+                        currentIndex: stackLayout.currentIndex
+                        count: stackLayout.count
                     }
-                }
-                Component {
-                    id: gpTool3s
-                    Button {
-                        text: qsTr("Execute")
-                    }
-                }
 
             }
         }
