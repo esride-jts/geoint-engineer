@@ -32,6 +32,7 @@ namespace ArcGISRuntime
 {
 class GeoprocessingFeatures;
 class GeoprocessingTask;
+class GeoprocessingResult;
 class LicenseInfo;
 enum class LoadStatus;
 class LocalGeoprocessingService;
@@ -63,13 +64,13 @@ public:
     void executeTasks(Esri::ArcGISRuntime::GeoprocessingFeatures *inputFeatures);
 
 signals:
-    void taskCompleted(Esri::ArcGISRuntime::GeoprocessingFeatures *outputFeatures);
+    void taskCompleted(Esri::ArcGISRuntime::GeoprocessingResult *result);
 
 private slots:
     void networkRequestFinished(QNetworkReply *networkReply);
     void portalStatusChanged();
     void statusChanged();
-    void localTaskCompleted(Esri::ArcGISRuntime::GeoprocessingFeatures *outputFeatures);
+    void localTaskCompleted(Esri::ArcGISRuntime::GeoprocessingResult *result);
 
 private:
     QString licenseFilePath() const;

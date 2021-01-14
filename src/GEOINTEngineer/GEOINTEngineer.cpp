@@ -18,6 +18,7 @@
 #include "FeatureCollectionTable.h"
 #include "FeatureQueryResult.h"
 #include "GeoprocessingFeatures.h"
+#include "GeoprocessingResult.h"
 #include "Map.h"
 #include "MapQuickView.h"
 #include "PolygonBuilder.h"
@@ -218,9 +219,28 @@ void GEOINTEngineer::onInputFeatureAdded(QUuid, bool added)
     qDebug() << "Added the current map extent as feature failed!";
 }
 
-void GEOINTEngineer::onTaskCompleted(Esri::ArcGISRuntime::GeoprocessingFeatures* outputFeatures)
+void GEOINTEngineer::onTaskCompleted(Esri::ArcGISRuntime::GeoprocessingResult* result)
 {
-    FeatureSet* outputFeatureSet = outputFeatures->features();
-    FeatureCollectionTable* newResultFeatures = new FeatureCollectionTable(outputFeatureSet, this);
-    m_outputFeatureLayer->featureCollection()->tables()->append(newResultFeatures);
+    QMap<QString, GeoprocessingParameter*> outputs = result->outputs();
+    foreach (GeoprocessingParameter const *outputParameter, outputs.values())
+    {
+        switch (outputParameter->parameterType())
+        {
+        case GeoprocessingParameterType::GeoprocessingFeatures:
+            {
+                GeoprocessingFeatures *outputFeatures = (GeoprocessingFeatures*)outputParameter;
+                if (nullptr != outputFeatures)
+                {
+                    // Task with features as output succeeded
+                    FeatureSet* outputFeatureSet = outputFeatures->features();
+                    FeatureCollectionTable* newResultFeatures = new FeatureCollectionTable(outputFeatureSet, this);
+                    m_outputFeatureLayer->featureCollection()->tables()->append(newResultFeatures);
+                }
+            }
+            break;
+
+        default:
+            break;
+        }
+    }
 }

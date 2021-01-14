@@ -25,6 +25,7 @@ class FeatureCollectionLayer;
 class FeatureCollectionTable;
 class FeatureQueryResult;
 class GeoprocessingFeatures;
+class GeoprocessingResult;
 class Map;
 class MapQuickView;
 }
@@ -53,7 +54,7 @@ private slots:
     void onQueryFeaturesCompleted(QUuid, Esri::ArcGISRuntime::FeatureQueryResult* queryResult);
     void onFeaturesDeleted(QUuid, bool);
     void onInputFeatureAdded(QUuid, bool);
-    void onTaskCompleted(Esri::ArcGISRuntime::GeoprocessingFeatures* outputFeatures);
+    void onTaskCompleted(Esri::ArcGISRuntime::GeoprocessingResult* result);
 
 private:
     void executeTasksUsingCurrentExtent();

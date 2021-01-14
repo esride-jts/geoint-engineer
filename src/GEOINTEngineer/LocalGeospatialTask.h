@@ -32,6 +32,7 @@ namespace ArcGISRuntime
 {
 class GeoprocessingFeatures;
 class GeoprocessingTask;
+class GeoprocessingResult;
 }
 }
 
@@ -52,7 +53,7 @@ public:
     void logInfos() const;
 
 signals:
-    void taskCompleted(Esri::ArcGISRuntime::GeoprocessingFeatures *outputFeatures);
+    void taskCompleted(Esri::ArcGISRuntime::GeoprocessingResult *result);
 
 private slots:
     void taskParametersCreated(QUuid, const Esri::ArcGISRuntime::GeoprocessingParameters &defaultInputParameters);

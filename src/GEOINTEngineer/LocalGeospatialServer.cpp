@@ -400,7 +400,7 @@ void LocalGeospatialServer::statusChanged()
     }
 }
 
-void LocalGeospatialServer::localTaskCompleted(GeoprocessingFeatures *outputFeatures)
+void LocalGeospatialServer::localTaskCompleted(GeoprocessingResult *result)
 {
-    emit taskCompleted(outputFeatures);
+    emit taskCompleted(result);
 }

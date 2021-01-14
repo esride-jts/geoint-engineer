@@ -162,26 +162,9 @@ void LocalGeospatialTask::taskParametersCreated(QUuid, const Esri::ArcGISRuntime
             {
                 qDebug() << "Geoprocessing job " << newGeoprocessingJob->serverJobId() << " succeeded.";
                 GeoprocessingResult* newGeoprocessingResult = newGeoprocessingJob->result();
-                QMap<QString, GeoprocessingParameter*> outputs = newGeoprocessingResult->outputs();
-                foreach (GeoprocessingParameter const *outputParameter, outputs.values())
-                {
-                    switch (outputParameter->parameterType())
-                    {
-                    case GeoprocessingParameterType::GeoprocessingFeatures:
-                        {
-                            GeoprocessingFeatures *outputFeatures = (GeoprocessingFeatures*)outputParameter;
-                            if (nullptr != outputFeatures)
-                            {
-                                // Emit that a task with features as output succeeded
-                                emit taskCompleted(outputFeatures);
-                            }
-                        }
-                        break;
 
-                    default:
-                        break;
-                    }
-                }
+                // Emit that a task succeeded
+                emit taskCompleted(newGeoprocessingResult);
             }
             break;
 
