@@ -11,8 +11,10 @@
 // See the Sample code usage restrictions document for further information.
 //
 
+import QtQuick 2.3
 import QtQuick.Controls 2.3
 import QtQuick.Controls.Material 2.3
+import QtQuick.Layouts 1.3
 import Esri.GEOINTEngineer 1.0
 
 ApplicationWindow {
@@ -43,9 +45,56 @@ ApplicationWindow {
         }
     }
 
-    GEOINTEngineerForm {
-        id: engineerForm
+    Pane {
         anchors.fill: parent
+        RowLayout {
+            anchors.fill: parent
+
+            ColumnLayout {
+
+                GEOINTEngineerForm {
+                    id: engineerForm
+                    Layout.fillHeight: true
+                    Layout.fillWidth: true
+                }
+            }
+
+            ColumnLayout {
+                Layout.fillWidth: false
+                Layout.preferredWidth: 300
+
+                StackView {
+                    id: stack
+                    initialItem: gpTool1
+                    Layout.fillHeight: true
+                    Layout.fillWidth: true
+                }
+
+                Component {
+                    id: gpTool1
+
+                    ColumnLayout {
+                        Button {
+                            Layout.alignment: Qt.AlignBottom | Qt.AlignRight
+                            text: qsTr("Execute")
+                        }
+                    }
+                }
+                Component {
+                    id: gpTool2
+                    Button {
+                        text: qsTr("Execute")
+                    }
+                }
+                Component {
+                    id: gpTool3s
+                    Button {
+                        text: qsTr("Execute")
+                    }
+                }
+
+            }
+        }
     }
 
     footer: TabBar {
