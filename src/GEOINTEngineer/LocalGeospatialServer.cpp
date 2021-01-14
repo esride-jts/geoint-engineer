@@ -31,6 +31,7 @@
 #include "GeoprocessingTask.h"
 #include "LocalGeoprocessingService.h"
 #include "LocalServer.h"
+#include "MobileMapPackage.h"
 #include "Portal.h"
 
 #include <QDebug>
@@ -51,20 +52,40 @@ LocalGeospatialServer::LocalGeospatialServer(QObject *parent) :
     connect(m_networkAccessManager, &QNetworkAccessManager::finished, this, &LocalGeospatialServer::networkRequestFinished);
 }
 
+QFileInfoList LocalGeospatialServer::listFiles(QString const &directoryPath, QString const &fileExtension) const
+{
+    QDir dataDirectory(directoryPath);
+    if (dataDirectory.exists())
+    {
+        dataDirectory.setFilter(QDir::Files);
+        dataDirectory.setNameFilters(QStringList() << fileExtension);
+        return dataDirectory.entryInfoList();
+    }
+
+    return QFileInfoList();
+}
+
 QFileInfoList LocalGeospatialServer::geoprocessingPackages() const
 {
-    QString datapathKeyName = "geoint.modelpath";
+    QString pathKeyName = "geoint.modelpath";
     QProcessEnvironment systemEnvironment = QProcessEnvironment::systemEnvironment();
-    if (systemEnvironment.contains(datapathKeyName))
+    if (systemEnvironment.contains(pathKeyName))
     {
-        QString datapathValue = systemEnvironment.value(datapathKeyName);
-        QDir dataDirectory(datapathValue);
-        if (dataDirectory.exists())
-        {
-            dataDirectory.setFilter(QDir::Files);
-            dataDirectory.setNameFilters(QStringList() << "*.gpkx");
-            return dataDirectory.entryInfoList();
-        }
+        QString directoryPath = systemEnvironment.value(pathKeyName);
+        return listFiles(directoryPath, "*.gpkx");
+    }
+
+    return QFileInfoList();
+}
+
+QFileInfoList LocalGeospatialServer::mapPackages() const
+{
+    QString pathKeyName = "geoint.datapath";
+    QProcessEnvironment systemEnvironment = QProcessEnvironment::systemEnvironment();
+    if (systemEnvironment.contains(pathKeyName))
+    {
+        QString directoryPath = systemEnvironment.value(pathKeyName);
+        return listFiles(directoryPath, "*.mmpk");
     }
 
     return QFileInfoList();
@@ -146,11 +167,15 @@ void LocalGeospatialServer::executeTasks(GeoprocessingFeatures *inputFeatures)
 void LocalGeospatialServer::startGeoprocessing()
 {
     QFileInfoList packages = geoprocessingPackages();
-    foreach (const QFileInfo fileInfo, packages)
+    foreach (QFileInfo const &fileInfo, packages)
     {
+        // Create a new local geoprocessing service with map server results
         QString packageFilePath = fileInfo.absoluteFilePath();
         qDebug() << packageFilePath;
-        LocalGeoprocessingService* localGpService = new LocalGeoprocessingService(packageFilePath, this);
+        LocalGeoprocessingService *localGpService = new LocalGeoprocessingService(packageFilePath, this);
+        // TODO: When is map server result supported?
+        //localGpService->setServiceType(GeoprocessingServiceType::AsynchronousSubmitWithMapServerResult);
+        localGpService->setServiceType(GeoprocessingServiceType::SynchronousExecute);
         connect(localGpService, &LocalGeoprocessingService::statusChanged, this, [this, localGpService]()
         {
             switch (localGpService->status())
@@ -180,6 +205,37 @@ void LocalGeospatialServer::startGeoprocessing()
 
         });
         localGpService->start();
+    }
+}
+
+void LocalGeospatialServer::startMapping()
+{
+    QFileInfoList packages = mapPackages();
+    foreach (QFileInfo const &fileInfo, packages)
+    {
+        // Create a new local geoprocessing service with map server results
+        QString packageFilePath = fileInfo.absoluteFilePath();
+        MobileMapPackage *mobileMapPackage = new MobileMapPackage(packageFilePath, this);
+        connect(mobileMapPackage, &MobileMapPackage::loadStatusChanged, this, [packageFilePath, mobileMapPackage, this](LoadStatus loadStatus)
+        {
+            switch (loadStatus)
+            {
+            case LoadStatus::Loaded:
+                {
+                    qDebug() << "Local map package " << packageFilePath << " loaded.";
+                    QList<Map*> offlineMaps = mobileMapPackage->maps();
+                    foreach (Map *offlineMap, offlineMaps)
+                    {
+                        emit mapLoaded(offlineMap);
+                    }
+                }
+                break;
+
+            default:
+                break;
+            }
+        });
+        mobileMapPackage->load();
     }
 }
 
@@ -383,6 +439,7 @@ void LocalGeospatialServer::statusChanged()
     case LocalServerStatus::Started:
         qDebug() << "Local geospatial server started.";
         startGeoprocessing();
+        startMapping();
         break;
 
     case LocalServerStatus::Stopping:

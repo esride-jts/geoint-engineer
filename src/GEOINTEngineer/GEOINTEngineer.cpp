@@ -36,8 +36,10 @@ GEOINTEngineer::GEOINTEngineer(QObject* parent /* = nullptr */):
     QObject(parent),
     m_map(new Map(Basemap::openStreetMap(this), this)),
     m_inputFeatureLayer(new FeatureCollectionLayer(new FeatureCollection(this), this)),
-    m_localGeospatialServer(new LocalGeospatialServer(this))
+    m_localGeospatialServer(new LocalGeospatialServer(this)),
+    m_operationalLayerInitialized(false)
 {
+    connect(m_localGeospatialServer, &LocalGeospatialServer::mapLoaded, this, &GEOINTEngineer::onMapLoaded);
     connect(m_localGeospatialServer, &LocalGeospatialServer::taskCompleted, this, &GEOINTEngineer::onTaskCompleted);
 }
 
@@ -60,9 +62,6 @@ void GEOINTEngineer::setMapView(MapQuickView* mapView)
 
     m_mapView = mapView;
     m_mapView->setMap(m_map);
-
-    // Add the operational layers
-    initOperationalLayers();
 
     emit mapViewChanged();
 
@@ -99,6 +98,8 @@ void GEOINTEngineer::initOperationalLayers()
     FeatureCollection* outputFeatureCollection = new FeatureCollection(this);
     m_outputFeatureLayer = new FeatureCollectionLayer(outputFeatureCollection, this);
     m_map->operationalLayers()->append(m_outputFeatureLayer);
+
+    m_operationalLayerInitialized = true;
 }
 
 void GEOINTEngineer::deleteAllInputFeatures()
@@ -143,6 +144,12 @@ QList<Feature*> GEOINTEngineer::extractFeatures(FeatureQueryResult *queryResult)
 
 void GEOINTEngineer::executeAllTasks()
 {
+    if (!m_operationalLayerInitialized)
+    {
+        // Add the operational layers
+        initOperationalLayers();
+    }
+
     // First of all delete all input features
     // when delete all was executed, the current map extent
     // is added as a new input feature
@@ -219,8 +226,32 @@ void GEOINTEngineer::onInputFeatureAdded(QUuid, bool added)
     qDebug() << "Added the current map extent as feature failed!";
 }
 
-void GEOINTEngineer::onTaskCompleted(Esri::ArcGISRuntime::GeoprocessingResult* result)
+void GEOINTEngineer::onMapLoaded(Map* map)
 {
+    // Replace the current focus map
+    if (nullptr != m_mapView)
+    {
+        m_mapView->setMap(map);
+        if (nullptr != m_map)
+        {
+            delete m_map;
+        }
+        m_map = map;
+    }
+}
+
+void GEOINTEngineer::onTaskCompleted(GeoprocessingResult* result)
+{
+    ArcGISMapImageLayer* resultMapImageLayer = result->mapImageLayer();
+    if (nullptr != resultMapImageLayer)
+    {
+        m_map->operationalLayers()->append(resultMapImageLayer);
+        return;
+    }
+
+    // Result is not drawn as a map image layer
+    // We have to directly access the features
+    // TODO: Specific renderer must be implemented!
     QMap<QString, GeoprocessingParameter*> outputs = result->outputs();
     foreach (GeoprocessingParameter const *outputParameter, outputs.values())
     {
@@ -229,7 +260,7 @@ void GEOINTEngineer::onTaskCompleted(Esri::ArcGISRuntime::GeoprocessingResult* r
         case GeoprocessingParameterType::GeoprocessingFeatures:
             {
                 GeoprocessingFeatures *outputFeatures = (GeoprocessingFeatures*)outputParameter;
-                if (nullptr != outputFeatures)
+                if (nullptr != outputFeatures && nullptr == result->mapImageLayer())
                 {
                     // Task with features as output succeeded
                     FeatureSet* outputFeatureSet = outputFeatures->features();

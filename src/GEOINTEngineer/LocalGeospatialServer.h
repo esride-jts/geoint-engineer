@@ -36,6 +36,7 @@ class GeoprocessingResult;
 class LicenseInfo;
 enum class LoadStatus;
 class LocalGeoprocessingService;
+class Map;
 class Portal;
 }
 }
@@ -64,6 +65,7 @@ public:
     void executeTasks(Esri::ArcGISRuntime::GeoprocessingFeatures *inputFeatures);
 
 signals:
+    void mapLoaded(Esri::ArcGISRuntime::Map *map);
     void taskCompleted(Esri::ArcGISRuntime::GeoprocessingResult *result);
 
 private slots:
@@ -75,8 +77,12 @@ private slots:
 private:
     QString licenseFilePath() const;
 
+    QFileInfoList listFiles(QString const &directoryPath, QString const &fileExtension) const;
     QFileInfoList geoprocessingPackages() const;
     void startGeoprocessing();
+    void startMapping();
+
+    QFileInfoList mapPackages() const;
 
     void saveLicense(Esri::ArcGISRuntime::LicenseInfo const *licenseInfo);
     void updateLicense(Esri::ArcGISRuntime::LicenseInfo const *licenseInfo, bool save);

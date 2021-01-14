@@ -54,6 +54,7 @@ private slots:
     void onQueryFeaturesCompleted(QUuid, Esri::ArcGISRuntime::FeatureQueryResult* queryResult);
     void onFeaturesDeleted(QUuid, bool);
     void onInputFeatureAdded(QUuid, bool);
+    void onMapLoaded(Esri::ArcGISRuntime::Map* map);
     void onTaskCompleted(Esri::ArcGISRuntime::GeoprocessingResult* result);
 
 private:
@@ -75,6 +76,8 @@ private:
     Esri::ArcGISRuntime::FeatureCollectionTable* m_ouputFeatures = nullptr;
     QMap<QUuid, QObject*> m_featuresLifetimes;
     LocalGeospatialServer* m_localGeospatialServer = nullptr;
+
+    bool m_operationalLayerInitialized;
 };
 
 #endif // GEOINTENGINEER_H

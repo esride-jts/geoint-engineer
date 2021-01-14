@@ -138,7 +138,21 @@ void LocalGeospatialTask::taskParametersCreated(QUuid, const Esri::ArcGISRuntime
     qDebug() << "Geoprocessing input parameters" << taskInfo.name() << "created.";
     QMap<QString, GeoprocessingParameter*> inputs = defaultInputParameters.inputs();
     inputs.insert(parameterInfo.name(), m_inputFeatures);
+
+    // Define the execution type
     GeoprocessingParameters inputParameters(defaultInputParameters.executionType());
+    switch (inputParameters.executionType())
+    {
+    case GeoprocessingExecutionType::AsynchronousSubmit:
+        qDebug() << "Default execution type is asynchronous submit.";
+        break;
+    case GeoprocessingExecutionType::SynchronousExecute:
+        qDebug() << "Default execution type is synchronous execute.";
+        break;
+    case GeoprocessingExecutionType::Unknown:
+        qDebug() << "Default execution type is unknown.";
+        break;
+    }
     inputParameters.setInputs(inputs);
 
     GeoprocessingJob *newGeoprocessingJob = m_geoprocessingTask->createJob(inputParameters);
