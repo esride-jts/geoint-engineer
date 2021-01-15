@@ -11,6 +11,7 @@
 //
 
 #include "GEOINTEngineer.h"
+#include "GeospatialTaskListModel.h"
 #include "LocalGeospatialServer.h"
 
 #include "Basemap.h"
@@ -32,11 +33,12 @@
 
 using namespace Esri::ArcGISRuntime;
 
-GEOINTEngineer::GEOINTEngineer(QObject* parent /* = nullptr */):
+GEOINTEngineer::GEOINTEngineer(QObject *parent /* = nullptr */):
     QObject(parent),
     m_map(new Map(Basemap::openStreetMap(this), this)),
     m_inputFeatureLayer(new FeatureCollectionLayer(new FeatureCollection(this), this)),
     m_localGeospatialServer(new LocalGeospatialServer(this)),
+    m_geospatialTaskListModel(new GeospatialTaskListModel(this)),
     m_operationalLayerInitialized(false)
 {
     connect(m_localGeospatialServer, &LocalGeospatialServer::mapLoaded, this, &GEOINTEngineer::onMapLoaded);
@@ -54,7 +56,7 @@ MapQuickView* GEOINTEngineer::mapView() const
 }
 
 // Set the view (created in QML)
-void GEOINTEngineer::setMapView(MapQuickView* mapView)
+void GEOINTEngineer::setMapView(MapQuickView *mapView)
 {
     if (!mapView || mapView == m_mapView)
     {
@@ -241,7 +243,7 @@ void GEOINTEngineer::onMapLoaded(Map* map)
     }
 }
 
-void GEOINTEngineer::onMapServiceLoaded(ArcGISMapImageLayer* mapImageLayer)
+void GEOINTEngineer::onMapServiceLoaded(ArcGISMapImageLayer *mapImageLayer)
 {
     if (nullptr != m_map)
     {
@@ -249,7 +251,12 @@ void GEOINTEngineer::onMapServiceLoaded(ArcGISMapImageLayer* mapImageLayer)
     }
 }
 
-void GEOINTEngineer::onTaskCompleted(GeoprocessingResult* result)
+void GEOINTEngineer::onTaskLoaded(LocalGeospatialTask *geospatialTask)
+{
+    m_geospatialTaskListModel->addTask(geospatialTask);
+}
+
+void GEOINTEngineer::onTaskCompleted(GeoprocessingResult *result)
 {
     ArcGISMapImageLayer* resultMapImageLayer = result->mapImageLayer();
     if (nullptr != resultMapImageLayer)

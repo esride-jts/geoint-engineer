@@ -37,6 +37,16 @@ LocalGeospatialTask::LocalGeospatialTask(GeoprocessingTask *geoprocessingTask, Q
     connect(geoprocessingTask, &GeoprocessingTask::createDefaultParametersCompleted, this, &LocalGeospatialTask::taskParametersCreated);
 }
 
+QString LocalGeospatialTask::displayName() const
+{
+    return m_geoprocessingTask->geoprocessingTaskInfo().displayName();
+}
+
+QString LocalGeospatialTask::description() const
+{
+    return m_geoprocessingTask->geoprocessingTaskInfo().description();
+}
+
 bool LocalGeospatialTask::hasInputFeaturesParameter() const
 {
     GeoprocessingTaskInfo taskInfo = m_geoprocessingTask->geoprocessingTaskInfo();

@@ -416,6 +416,9 @@ void LocalGeospatialServer::networkRequestFinished(QNetworkReply *networkReply)
                     connect(geospatialTask, &LocalGeospatialTask::taskCompleted, this, &LocalGeospatialServer::localTaskCompleted);
                     m_geospatialTasks.append(geospatialTask);
                     logGeoprocessingTaskInfos();
+
+                    // Emit the new geospatial task
+                    emit taskLoaded(geospatialTask);
                 }
                 break;
             default:

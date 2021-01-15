@@ -68,6 +68,7 @@ public:
 signals:
     void mapLoaded(Esri::ArcGISRuntime::Map *map);
     void mapServiceLoaded(Esri::ArcGISRuntime::ArcGISMapImageLayer *mapImageLayer);
+    void taskLoaded(LocalGeospatialTask *geospatialTask);
     void taskCompleted(Esri::ArcGISRuntime::GeoprocessingResult *result);
 
 private slots:

@@ -19,7 +19,7 @@ import Esri.GEOINTEngineer 1.0
 
 ApplicationWindow {
     visible: true
-    width: 800
+    width: 900
     height: 600
 
     Material.theme: Material.Dark
@@ -51,15 +51,18 @@ ApplicationWindow {
             anchors.fill: parent
 
             ColumnLayout {
+                Layout.margins: 15
 
                 GEOINTEngineerForm {
                     id: engineerForm
+                    Layout.topMargin: 6
                     Layout.fillHeight: true
                     Layout.fillWidth: true
                 }
             }
 
             ColumnLayout {
+                Layout.margins: 15
                 Layout.fillWidth: false
                 Layout.preferredWidth: 300
 

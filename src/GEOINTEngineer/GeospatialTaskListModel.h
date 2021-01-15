@@ -1,5 +1,5 @@
 // GEOINTEngineer
-// Copyright © 2021 Esri Deutschland GmbH
+// Copyright Â© 2021 Esri Deutschland GmbH
 // Jan Tschada (j.tschada@esri.de)
 //
 // This program is free software: you can redistribute it and/or modify
@@ -23,48 +23,36 @@
 // See <https://developers.arcgis.com/qt/> for further information.
 
 
-#ifndef LOCALGEOSPATIALTASK_H
-#define LOCALGEOSPATIALTASK_H
+#ifndef GEOSPATIALTASKLISTMODEL_H
+#define GEOSPATIALTASKLISTMODEL_H
 
-namespace Esri
-{
-namespace ArcGISRuntime
-{
-class GeoprocessingFeatures;
-class GeoprocessingTask;
-class GeoprocessingResult;
-}
-}
-
-#include "GeoprocessingParameters.h"
-
+#include <QAbstractListModel>
 #include <QObject>
 
-class LocalGeospatialTask : public QObject
+class LocalGeospatialTask;
+
+class GeospatialTaskListModel : public QAbstractListModel
 {
     Q_OBJECT
 public:
-    explicit LocalGeospatialTask(Esri::ArcGISRuntime::GeoprocessingTask *geoprocessingTask, QObject *parent = nullptr);
+    explicit GeospatialTaskListModel(QObject *parent = nullptr);
 
-    QString displayName() const;
-    QString description() const;
+    void addTask(LocalGeospatialTask *geospatialTask);
 
-    bool hasInputFeaturesParameter() const;
-    void executeTask(Esri::ArcGISRuntime::GeoprocessingFeatures *inputFeatures);
-    void logInfos() const;
+    QHash<int, QByteArray> roleNames() const override;
+    int rowCount(const QModelIndex &parent = QModelIndex()) const override;
+    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
 
 signals:
-    void taskCompleted(Esri::ArcGISRuntime::GeoprocessingResult *result);
-
-private slots:
-    void taskParametersCreated(QUuid, const Esri::ArcGISRuntime::GeoprocessingParameters &defaultInputParameters);
 
 private:
-    int findFirstInputFeaturesParameter() const;
-    const static int InvalidIndex = -1;
+    enum RoleNames {
+        TitleRole = Qt::UserRole + 1,
+        DescriptionRole = Qt::UserRole + 2
+    };
 
-    Esri::ArcGISRuntime::GeoprocessingTask* m_geoprocessingTask;
-    Esri::ArcGISRuntime::GeoprocessingFeatures* m_inputFeatures;
+
+    QList<LocalGeospatialTask*> m_geospatialTasks;
 };
 
-#endif // LOCALGEOSPATIALTASK_H
+#endif // GEOSPATIALTASKLISTMODEL_H

@@ -14,7 +14,9 @@
 #ifndef GEOINTENGINEER_H
 #define GEOINTENGINEER_H
 
+class GeospatialTaskListModel;
 class LocalGeospatialServer;
+class LocalGeospatialTask;
 
 namespace Esri
 {
@@ -43,7 +45,7 @@ class GEOINTEngineer : public QObject
     Q_PROPERTY(Esri::ArcGISRuntime::MapQuickView* mapView READ mapView WRITE setMapView NOTIFY mapViewChanged)
 
 public:
-    explicit GEOINTEngineer(QObject* parent = nullptr);
+    explicit GEOINTEngineer(QObject *parent = nullptr);
     ~GEOINTEngineer() override;
 
     Q_INVOKABLE void executeAllTasks();
@@ -52,12 +54,13 @@ signals:
     void mapViewChanged();
 
 private slots:
-    void onQueryFeaturesCompleted(QUuid, Esri::ArcGISRuntime::FeatureQueryResult* queryResult);
+    void onQueryFeaturesCompleted(QUuid, Esri::ArcGISRuntime::FeatureQueryResult *queryResult);
     void onFeaturesDeleted(QUuid, bool);
     void onInputFeatureAdded(QUuid, bool);
-    void onMapLoaded(Esri::ArcGISRuntime::Map* map);
-    void onMapServiceLoaded(Esri::ArcGISRuntime::ArcGISMapImageLayer* mapImageLayer);
-    void onTaskCompleted(Esri::ArcGISRuntime::GeoprocessingResult* result);
+    void onMapLoaded(Esri::ArcGISRuntime::Map *map);
+    void onMapServiceLoaded(Esri::ArcGISRuntime::ArcGISMapImageLayer *mapImageLayer);
+    void onTaskLoaded(LocalGeospatialTask *geospatialTask);
+    void onTaskCompleted(Esri::ArcGISRuntime::GeoprocessingResult *result);
 
 private:
     void executeTasksUsingCurrentExtent();
@@ -65,10 +68,10 @@ private:
     void deleteAllInputFeatures();
     void deleteAllOutputFeatures();
     void deleteAllFeatures();
-    QList<Esri::ArcGISRuntime::Feature*> extractFeatures(Esri::ArcGISRuntime::FeatureQueryResult* queryResult);
+    QList<Esri::ArcGISRuntime::Feature*> extractFeatures(Esri::ArcGISRuntime::FeatureQueryResult *queryResult);
 
     Esri::ArcGISRuntime::MapQuickView* mapView() const;
-    void setMapView(Esri::ArcGISRuntime::MapQuickView* mapView);
+    void setMapView(Esri::ArcGISRuntime::MapQuickView *mapView);
 
     Esri::ArcGISRuntime::Map* m_map = nullptr;
     Esri::ArcGISRuntime::MapQuickView* m_mapView = nullptr;
@@ -77,7 +80,9 @@ private:
     Esri::ArcGISRuntime::FeatureCollectionLayer* m_outputFeatureLayer = nullptr;
     Esri::ArcGISRuntime::FeatureCollectionTable* m_ouputFeatures = nullptr;
     QMap<QUuid, QObject*> m_featuresLifetimes;
+
     LocalGeospatialServer* m_localGeospatialServer = nullptr;
+    GeospatialTaskListModel* m_geospatialTaskListModel = nullptr;
 
     bool m_operationalLayerInitialized;
 };
