@@ -63,6 +63,7 @@ public:
     };
     Status start();
 
+    void executeTask(LocalGeospatialTask *geospatialTask, Esri::ArcGISRuntime::GeoprocessingFeatures *inputFeatures);
     void executeTasks(Esri::ArcGISRuntime::GeoprocessingFeatures *inputFeatures);
 
 signals:

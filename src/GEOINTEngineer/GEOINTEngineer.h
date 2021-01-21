@@ -48,7 +48,8 @@ public:
     explicit GEOINTEngineer(QObject *parent = nullptr);
     ~GEOINTEngineer() override;
 
-    Q_INVOKABLE void executeAllTasks();
+    Q_INVOKABLE void executeTask(GeospatialTaskListModel *taskModel, int taskIndex);
+    Q_INVOKABLE void executeAllTasks(GeospatialTaskListModel *taskModel);
 
 signals:
     void mapViewChanged();
@@ -84,6 +85,7 @@ private:
 
     LocalGeospatialServer* m_localGeospatialServer = nullptr;
     GeospatialTaskListModel* m_geospatialTaskListModel = nullptr;
+    LocalGeospatialTask* m_currentGeospatialTask = nullptr;
 
     bool m_operationalLayerInitialized;
 };

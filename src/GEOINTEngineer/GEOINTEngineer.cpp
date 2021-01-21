@@ -39,7 +39,6 @@ GEOINTEngineer::GEOINTEngineer(QObject *parent /* = nullptr */):
     m_map(new Map(Basemap::openStreetMap(this), this)),
     m_inputFeatureLayer(new FeatureCollectionLayer(new FeatureCollection(this), this)),
     m_localGeospatialServer(new LocalGeospatialServer(this)),
-    m_geospatialTaskListModel(new GeospatialTaskListModel(this)),
     m_operationalLayerInitialized(false)
 {
     connect(m_localGeospatialServer, &LocalGeospatialServer::mapLoaded, this, &GEOINTEngineer::onMapLoaded);
@@ -147,8 +146,32 @@ QList<Feature*> GEOINTEngineer::extractFeatures(FeatureQueryResult *queryResult)
     return features;
 }
 
-void GEOINTEngineer::executeAllTasks()
+void GEOINTEngineer::executeTask(GeospatialTaskListModel *taskModel, int taskIndex)
 {
+    m_geospatialTaskListModel = taskModel;
+
+    // Set the current task
+    m_currentGeospatialTask = m_geospatialTaskListModel->task(taskIndex);
+
+    if (!m_operationalLayerInitialized)
+    {
+        // Add the operational layers
+        initOperationalLayers();
+    }
+
+    // First of all delete all input features
+    // when delete all was executed, the current map extent
+    // is added as a new input feature
+    deleteAllInputFeatures();
+}
+
+void GEOINTEngineer::executeAllTasks(GeospatialTaskListModel *taskModel)
+{
+    m_geospatialTaskListModel = taskModel;
+
+    // Unset the current task
+    m_currentGeospatialTask = nullptr;
+
     if (!m_operationalLayerInitialized)
     {
         // Add the operational layers
@@ -222,9 +245,18 @@ void GEOINTEngineer::onInputFeatureAdded(QUuid, bool added)
 {
     if (added)
     {
-        qDebug() << "Executing all tasks using the current map extent...";
-        GeoprocessingFeatures* mapExtentAsFeatures = new GeoprocessingFeatures(m_inputFeatures, this);
-        m_localGeospatialServer->executeTasks(mapExtentAsFeatures);
+        if (nullptr == m_currentGeospatialTask)
+        {
+            qDebug() << "Executing all tasks using the current map extent...";
+            GeoprocessingFeatures* mapExtentAsFeatures = new GeoprocessingFeatures(m_inputFeatures, this);
+            m_localGeospatialServer->executeTasks(mapExtentAsFeatures);
+        }
+        else
+        {
+            qDebug() << "Executing " << m_currentGeospatialTask->displayName() << " using the current map extent...";
+            GeoprocessingFeatures* mapExtentAsFeatures = new GeoprocessingFeatures(m_inputFeatures, this);
+            m_localGeospatialServer->executeTask(m_currentGeospatialTask, mapExtentAsFeatures);
+        }
         return;
     }
 

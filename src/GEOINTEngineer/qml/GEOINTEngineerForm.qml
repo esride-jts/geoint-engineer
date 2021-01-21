@@ -18,8 +18,12 @@ import Esri.GEOINTEngineer 1.0
 Item {
     id: geointForm
 
-    function executeAllTasks() {
-        model.executeAllTasks();
+    function executeTask(taskModel, taskIndex) {
+        model.executeTask(taskModel, taskIndex);
+    }
+
+    function executeAllTasks(taskModel) {
+        model.executeAllTasks(taskModel);
     }
 
     signal taskLoaded(LocalGeospatialTask geospatialTask);

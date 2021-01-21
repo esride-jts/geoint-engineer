@@ -40,7 +40,7 @@ ApplicationWindow {
             text: qsTr("Execute")
 
             onClicked: {
-                engineerForm.executeAllTasks();
+                engineerForm.executeAllTasks(gpTaskListModel);
             }
         }
     }
@@ -113,6 +113,7 @@ ApplicationWindow {
                         model: gpTaskListModel
 
                         ColumnLayout {
+
                             Label {
                                 id: titleLabel
                                 text: model.title
@@ -130,6 +131,15 @@ ApplicationWindow {
                                 font.italic: true
                             }
                         }
+                    }
+                }
+
+                Button {
+                    Layout.alignment: Qt.AlignRight
+
+                    text: qsTr("Execute")
+                    onClicked: {
+                        engineerForm.executeTask(gpTaskListModel, gpTaskDesignListModel.index);
                     }
                 }
 

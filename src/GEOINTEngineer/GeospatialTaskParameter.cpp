@@ -1,5 +1,5 @@
 // GEOINTEngineer
-// Copyright Â© 2021 Esri Deutschland GmbH
+// Copyright © 2021 Esri Deutschland GmbH
 // Jan Tschada (j.tschada@esri.de)
 //
 // This program is free software: you can redistribute it and/or modify
@@ -23,37 +23,9 @@
 // See <https://developers.arcgis.com/qt/> for further information.
 
 
-#ifndef GEOSPATIALTASKLISTMODEL_H
-#define GEOSPATIALTASKLISTMODEL_H
+#include "GeospatialTaskParameter.h"
 
-#include <QAbstractListModel>
-#include <QObject>
-
-class LocalGeospatialTask;
-
-class GeospatialTaskListModel : public QAbstractListModel
+GeospatialTaskParameter::GeospatialTaskParameter(QObject *parent) : QObject(parent)
 {
-    Q_OBJECT
-public:
-    explicit GeospatialTaskListModel(QObject *parent = nullptr);
-
-    Q_INVOKABLE void addTask(LocalGeospatialTask *geospatialTask);
-    LocalGeospatialTask* task(int taskIndex) const;
-
-    QHash<int, QByteArray> roleNames() const override;
-    int rowCount(const QModelIndex &parent = QModelIndex()) const override;
-    QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
-
-signals:
-
-private:
-    enum RoleNames {
-        TitleRole = Qt::UserRole + 1,
-        DescriptionRole = Qt::UserRole + 2
-    };
-
-
-    QList<LocalGeospatialTask*> m_geospatialTasks;
-};
-
-#endif // GEOSPATIALTASKLISTMODEL_H
+    //TODO: Wrap a GeoprocessingParameter for QML usage
+}

@@ -35,11 +35,13 @@ include($$PWD/arcgisruntime.pri)
 HEADERS += \
     GEOINTEngineer.h \
     GeospatialTaskListModel.h \
+    GeospatialTaskParameter.h \
     LocalGeospatialServer.h \
     LocalGeospatialTask.h
 
 SOURCES += \
     GeospatialTaskListModel.cpp \
+    GeospatialTaskParameter.cpp \
     LocalGeospatialServer.cpp \
     LocalGeospatialTask.cpp \
     main.cpp \

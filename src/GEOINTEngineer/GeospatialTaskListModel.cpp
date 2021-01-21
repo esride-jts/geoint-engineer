@@ -36,6 +36,17 @@ void GeospatialTaskListModel::addTask(LocalGeospatialTask *geospatialTask)
     endInsertRows();
 }
 
+LocalGeospatialTask* GeospatialTaskListModel::task(int taskIndex) const
+{
+    if (m_geospatialTasks.size() <= taskIndex)
+    {
+        qDebug() << "Wrong index!";
+        return nullptr;
+    }
+
+    return m_geospatialTasks[taskIndex];
+}
+
 QHash<int, QByteArray> GeospatialTaskListModel::roleNames() const
 {
     QHash<int, QByteArray> roles;

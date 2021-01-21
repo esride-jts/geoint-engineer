@@ -167,6 +167,14 @@ LocalGeospatialServer::Status LocalGeospatialServer::start()
     return Status::Starting;
 }
 
+void LocalGeospatialServer::executeTask(LocalGeospatialTask *geospatialTask, Esri::ArcGISRuntime::GeoprocessingFeatures *inputFeatures)
+{
+    if (geospatialTask->hasInputFeaturesParameter())
+    {
+        geospatialTask->executeTask(inputFeatures);
+    }
+}
+
 void LocalGeospatialServer::executeTasks(GeoprocessingFeatures *inputFeatures)
 {
     foreach (LocalGeospatialTask *geospatialTask, m_geospatialTasks)
