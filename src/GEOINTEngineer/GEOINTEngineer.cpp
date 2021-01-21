@@ -291,12 +291,17 @@ void GEOINTEngineer::onTaskLoaded(LocalGeospatialTask *geospatialTask)
     emit taskLoaded(geospatialTask);
 }
 
-void GEOINTEngineer::onTaskCompleted(GeoprocessingResult *result)
+void GEOINTEngineer::onTaskCompleted(GeoprocessingResult *result, ArcGISMapImageLayer *mapImageLayerResult)
 {
     ArcGISMapImageLayer* resultMapImageLayer = result->mapImageLayer();
     if (nullptr != resultMapImageLayer)
     {
         m_map->operationalLayers()->append(resultMapImageLayer);
+        return;
+    }
+    if (nullptr != mapImageLayerResult)
+    {
+        m_map->operationalLayers()->append(mapImageLayerResult);
         return;
     }
 
@@ -311,7 +316,7 @@ void GEOINTEngineer::onTaskCompleted(GeoprocessingResult *result)
         case GeoprocessingParameterType::GeoprocessingFeatures:
             {
                 GeoprocessingFeatures *outputFeatures = (GeoprocessingFeatures*)outputParameter;
-                if (nullptr != outputFeatures && nullptr == result->mapImageLayer())
+                if (nullptr != outputFeatures)
                 {
                     // Task with features as output succeeded
                     FeatureSet* outputFeatureSet = outputFeatures->features();

@@ -26,6 +26,8 @@
 #ifndef LOCALGEOSPATIALSERVER_H
 #define LOCALGEOSPATIALSERVER_H
 
+class LocalGeospatialTask;
+
 namespace Esri
 {
 namespace ArcGISRuntime
@@ -42,7 +44,7 @@ class Portal;
 }
 }
 
-class LocalGeospatialTask;
+#include "LocalServerTypes.h"
 
 #include <QFileInfoList>
 #include <QNetworkAccessManager>
@@ -70,13 +72,13 @@ signals:
     void mapLoaded(Esri::ArcGISRuntime::Map *map);
     void mapServiceLoaded(Esri::ArcGISRuntime::ArcGISMapImageLayer *mapImageLayer);
     void taskLoaded(LocalGeospatialTask *geospatialTask);
-    void taskCompleted(Esri::ArcGISRuntime::GeoprocessingResult *result);
+    void taskCompleted(Esri::ArcGISRuntime::GeoprocessingResult *result, Esri::ArcGISRuntime::ArcGISMapImageLayer *mapImageLayerResult);
 
 private slots:
     void networkRequestFinished(QNetworkReply *networkReply);
     void portalStatusChanged();
     void statusChanged();
-    void localTaskCompleted(Esri::ArcGISRuntime::GeoprocessingResult *result);
+    void localTaskCompleted(Esri::ArcGISRuntime::GeoprocessingResult *result, Esri::ArcGISRuntime::ArcGISMapImageLayer *mapImageLayerResult);
 
 private:
     QString licenseFilePath() const;
@@ -100,6 +102,7 @@ private:
 
     Esri::ArcGISRuntime::Portal* m_geospatialPortal;
     QList<LocalGeospatialTask*> m_geospatialTasks;
+    QMap<QUrl, Esri::ArcGISRuntime::GeoprocessingServiceType> m_geoprocessingServiceTypes;
     QNetworkAccessManager* m_networkAccessManager;
 };
 

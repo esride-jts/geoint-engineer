@@ -196,8 +196,14 @@ void LocalGeospatialServer::startGeoprocessing()
         qDebug() << packageFilePath;
         LocalGeoprocessingService *localGpService = new LocalGeoprocessingService(packageFilePath, this);
         // TODO: When is map server result supported?
-        //localGpService->setServiceType(GeoprocessingServiceType::AsynchronousSubmitWithMapServerResult);
-        localGpService->setServiceType(GeoprocessingServiceType::SynchronousExecute);
+        if (packageFilePath.endsWith(".gpk"))
+        {
+            localGpService->setServiceType(GeoprocessingServiceType::AsynchronousSubmitWithMapServerResult);
+        }
+        else
+        {
+            localGpService->setServiceType(GeoprocessingServiceType::SynchronousExecute);
+        }
         connect(localGpService, &LocalGeoprocessingService::statusChanged, this, [this, localGpService]()
         {
             switch (localGpService->status())
@@ -372,7 +378,10 @@ bool LocalGeospatialServer::updateLicenseFromFile()
 
 void LocalGeospatialServer::addGeoprocessingTasks(LocalGeoprocessingService *geoprocessingService)
 {
+    // Start a request for accessing the available tasks
+    // Register the service type using the service endpoint url
     QString infoEndpoint = geoprocessingService->url().toString() + "?f=json";
+    m_geoprocessingServiceTypes.insert(QUrl(infoEndpoint), geoprocessingService->serviceType());
     QNetworkRequest geoprocessingInfoRequest(infoEndpoint);
     m_networkAccessManager->get(geoprocessingInfoRequest);
 }
@@ -409,31 +418,39 @@ void LocalGeospatialServer::networkRequestFinished(QNetworkReply *networkReply)
                 + "/" + taskValue.toString();
         qDebug() << geoprocessingTaskEndpoint;
 
-        GeoprocessingTask *geoprocessingTask = new GeoprocessingTask(QUrl(geoprocessingTaskEndpoint), this);
-        connect(geoprocessingTask, &GeoprocessingTask::loadStatusChanged, this, [this, geoprocessingTask]()
+        if (m_geoprocessingServiceTypes.contains(geoprocessingServiceUrl))
         {
-            LoadStatus taskLoadStatus = geoprocessingTask->loadStatus();
-            logLoadStatus("GP task ", taskLoadStatus);
-
-            switch (taskLoadStatus)
+            GeoprocessingServiceType serviceType = m_geoprocessingServiceTypes[geoprocessingServiceUrl];
+            GeoprocessingTask *geoprocessingTask = new GeoprocessingTask(QUrl(geoprocessingTaskEndpoint), this);
+            connect(geoprocessingTask, &GeoprocessingTask::loadStatusChanged, this, [this, geoprocessingTask, serviceType]()
             {
-            case LoadStatus::Loaded:
-                {
-                    // Add a new geospatial task
-                    LocalGeospatialTask *geospatialTask = new LocalGeospatialTask(geoprocessingTask, this);
-                    connect(geospatialTask, &LocalGeospatialTask::taskCompleted, this, &LocalGeospatialServer::localTaskCompleted);
-                    m_geospatialTasks.append(geospatialTask);
-                    logGeoprocessingTaskInfos();
+                LoadStatus taskLoadStatus = geoprocessingTask->loadStatus();
+                logLoadStatus("GP task ", taskLoadStatus);
 
-                    // Emit the new geospatial task
-                    emit taskLoaded(geospatialTask);
+                switch (taskLoadStatus)
+                {
+                case LoadStatus::Loaded:
+                    {
+                        // Add a new geospatial task
+                        LocalGeospatialTask *geospatialTask = new LocalGeospatialTask(geoprocessingTask, serviceType, this);
+                        connect(geospatialTask, &LocalGeospatialTask::taskCompleted, this, &LocalGeospatialServer::localTaskCompleted);
+                        m_geospatialTasks.append(geospatialTask);
+                        logGeoprocessingTaskInfos();
+
+                        // Emit the new geospatial task
+                        emit taskLoaded(geospatialTask);
+                    }
+                    break;
+                default:
+                    return;
                 }
-                break;
-            default:
-                return;
-            }
-        });
-        geoprocessingTask->load();
+            });
+            geoprocessingTask->load();
+        }
+        else
+        {
+            qDebug() << "Service type is unknown for " << geoprocessingServiceUrl;
+        }
     }
 }
 
@@ -527,7 +544,7 @@ void LocalGeospatialServer::statusChanged()
     }
 }
 
-void LocalGeospatialServer::localTaskCompleted(GeoprocessingResult *result)
+void LocalGeospatialServer::localTaskCompleted(GeoprocessingResult *result, ArcGISMapImageLayer *mapImageLayerResult)
 {
-    emit taskCompleted(result);
+    emit taskCompleted(result, mapImageLayerResult);
 }

@@ -62,7 +62,7 @@ private slots:
     void onMapLoaded(Esri::ArcGISRuntime::Map *map);
     void onMapServiceLoaded(Esri::ArcGISRuntime::ArcGISMapImageLayer *mapImageLayer);
     void onTaskLoaded(LocalGeospatialTask *geospatialTask);
-    void onTaskCompleted(Esri::ArcGISRuntime::GeoprocessingResult *result);
+    void onTaskCompleted(Esri::ArcGISRuntime::GeoprocessingResult *result, Esri::ArcGISRuntime::ArcGISMapImageLayer *mapImageLayerResult);
 
 private:
     void executeTasksUsingCurrentExtent();

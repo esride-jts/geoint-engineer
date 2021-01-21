@@ -30,6 +30,7 @@ namespace Esri
 {
 namespace ArcGISRuntime
 {
+class ArcGISMapImageLayer;
 class GeoprocessingFeatures;
 class GeoprocessingTask;
 class GeoprocessingResult;
@@ -37,6 +38,7 @@ class GeoprocessingResult;
 }
 
 #include "GeoprocessingParameters.h"
+#include "LocalServerTypes.h"
 
 #include <QObject>
 
@@ -48,7 +50,7 @@ class LocalGeospatialTask : public QObject
     Q_PROPERTY(QString description READ description)
 
 public:
-    explicit LocalGeospatialTask(Esri::ArcGISRuntime::GeoprocessingTask *geoprocessingTask, QObject *parent = nullptr);
+    explicit LocalGeospatialTask(Esri::ArcGISRuntime::GeoprocessingTask *geoprocessingTask, Esri::ArcGISRuntime::GeoprocessingServiceType serviceType, QObject *parent = nullptr);
 
     QString displayName() const;
     QString description() const;
@@ -58,7 +60,7 @@ public:
     void logInfos() const;
 
 signals:
-    void taskCompleted(Esri::ArcGISRuntime::GeoprocessingResult *result);
+    void taskCompleted(Esri::ArcGISRuntime::GeoprocessingResult *result, Esri::ArcGISRuntime::ArcGISMapImageLayer *mapImageLayerResult);
 
 private slots:
     void taskParametersCreated(QUuid, const Esri::ArcGISRuntime::GeoprocessingParameters &defaultInputParameters);
@@ -68,6 +70,7 @@ private:
     const static int InvalidIndex = -1;
 
     Esri::ArcGISRuntime::GeoprocessingTask* m_geoprocessingTask;
+    Esri::ArcGISRuntime::GeoprocessingServiceType m_serviceType;
     Esri::ArcGISRuntime::GeoprocessingFeatures* m_inputFeatures;
 };
 

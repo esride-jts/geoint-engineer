@@ -139,7 +139,7 @@ ApplicationWindow {
 
                     text: qsTr("Execute")
                     onClicked: {
-                        engineerForm.executeTask(gpTaskListModel, gpTaskDesignListModel.index);
+                        engineerForm.executeTask(gpTaskListModel, stackLayout.currentIndex);
                     }
                 }
 

@@ -30,9 +30,10 @@
 
 using namespace Esri::ArcGISRuntime;
 
-LocalGeospatialTask::LocalGeospatialTask(GeoprocessingTask *geoprocessingTask, QObject *parent) :
+LocalGeospatialTask::LocalGeospatialTask(GeoprocessingTask *geoprocessingTask, GeoprocessingServiceType serviceType, QObject *parent) :
     QObject(parent),
-    m_geoprocessingTask(geoprocessingTask)
+    m_geoprocessingTask(geoprocessingTask),
+    m_serviceType(serviceType)
 {
     connect(geoprocessingTask, &GeoprocessingTask::createDefaultParametersCompleted, this, &LocalGeospatialTask::taskParametersCreated);
 }
@@ -165,6 +166,20 @@ void LocalGeospatialTask::taskParametersCreated(QUuid, const Esri::ArcGISRuntime
     }
     inputParameters.setInputs(inputs);
 
+    // Log the service type
+    switch (m_serviceType)
+    {
+    case GeoprocessingServiceType::AsynchronousSubmitWithMapServerResult:
+        qDebug() << "Service type is asynchronous submit with map server result.";
+        break;
+    case GeoprocessingServiceType::AsynchronousSubmit:
+        qDebug() << "Service type is asynchronous submit.";
+        break;
+    case GeoprocessingServiceType::SynchronousExecute:
+        qDebug() << "Service type is synchronous execute.";
+        break;
+    }
+
     GeoprocessingJob *newGeoprocessingJob = m_geoprocessingTask->createJob(inputParameters);
     connect(newGeoprocessingJob, &GeoprocessingJob::jobDone, this, [this, newGeoprocessingJob]()
     {
@@ -185,10 +200,24 @@ void LocalGeospatialTask::taskParametersCreated(QUuid, const Esri::ArcGISRuntime
         case JobStatus::Succeeded:
             {
                 qDebug() << "Geoprocessing job " << newGeoprocessingJob->serverJobId() << " succeeded.";
-                GeoprocessingResult* newGeoprocessingResult = newGeoprocessingJob->result();
+                GeoprocessingResult *newGeoprocessingResult = newGeoprocessingJob->result();
+                ArcGISMapImageLayer *newMapImageLayer = nullptr;
+                if (GeoprocessingServiceType::AsynchronousSubmitWithMapServerResult == m_serviceType
+                        && nullptr == newGeoprocessingResult->mapImageLayer())
+                {
+                    // TODO: Investigate why there is no map image layer!
+                    QString taskEndpoint = m_geoprocessingTask->url().toString();
+                    const int Invalid_Index = -1;
+                    int gpServerCharPos = taskEndpoint.lastIndexOf("/GPServer/");
+                    if (Invalid_Index != gpServerCharPos)
+                    {
+                        QString mapImageServerEndpoint = taskEndpoint.left(gpServerCharPos) + "/MapServer/jobs/" + newGeoprocessingJob->serverJobId();
+                        newMapImageLayer = new ArcGISMapImageLayer(QUrl(mapImageServerEndpoint), this);
+                    }
+                }
 
                 // Emit that a task succeeded
-                emit taskCompleted(newGeoprocessingResult);
+                emit taskCompleted(newGeoprocessingResult, newMapImageLayer);
             }
             break;
 
