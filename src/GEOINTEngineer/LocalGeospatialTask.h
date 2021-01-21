@@ -43,6 +43,10 @@ class GeoprocessingResult;
 class LocalGeospatialTask : public QObject
 {
     Q_OBJECT
+
+    Q_PROPERTY(QString title READ displayName)
+    Q_PROPERTY(QString description READ description)
+
 public:
     explicit LocalGeospatialTask(Esri::ArcGISRuntime::GeoprocessingTask *geoprocessingTask, QObject *parent = nullptr);
 

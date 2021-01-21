@@ -31,7 +31,7 @@ GeospatialTaskListModel::GeospatialTaskListModel(QObject *parent) : QAbstractLis
 
 void GeospatialTaskListModel::addTask(LocalGeospatialTask *geospatialTask)
 {
-    beginInsertRows(QModelIndex(), rowCount(), rowCount() + 1);
+    beginInsertRows(QModelIndex(), rowCount(), rowCount());
     m_geospatialTasks.append(geospatialTask);
     endInsertRows();
 }
@@ -53,19 +53,23 @@ QVariant GeospatialTaskListModel::data(const QModelIndex &index, int role) const
 {
     if (index.row() < 0 || m_geospatialTasks.size() <= index.row())
     {
+        qDebug() << "Wrong index!";
         return QVariant();
     }
 
     LocalGeospatialTask *geospatialTask = m_geospatialTasks.at(index.row());
     switch (role)
     {
-        case TitleRole:
-            return geospatialTask->displayName();
+    case TitleRole:
+        qDebug() << "title:" << geospatialTask->displayName();
+        return geospatialTask->displayName();
 
-        case DescriptionRole:
-            return geospatialTask->description();
+    case DescriptionRole:
+        qDebug() << "description:" << geospatialTask->description();
+        return geospatialTask->description();
 
-        default:
-            return QVariant();
+    default:
+        qDebug() << "Unknown role!";
+        return QVariant();
     }
 }

@@ -16,10 +16,13 @@ import QtQuick.Controls 2.2
 import Esri.GEOINTEngineer 1.0
 
 Item {
+    id: geointForm
 
     function executeAllTasks() {
         model.executeAllTasks();
     }
+
+    signal taskLoaded(LocalGeospatialTask geospatialTask);
 
     // Create MapQuickView here, and create its Map etc. in C++ code
     MapView {
@@ -33,5 +36,9 @@ Item {
     GEOINTEngineer {
         id: model
         mapView: view
+
+        onTaskLoaded: {
+            geointForm.taskLoaded(geospatialTask);
+        }
     }
 }

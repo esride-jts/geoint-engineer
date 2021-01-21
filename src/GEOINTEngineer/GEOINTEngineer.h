@@ -52,6 +52,7 @@ public:
 
 signals:
     void mapViewChanged();
+    void taskLoaded(LocalGeospatialTask *geospatialTask);
 
 private slots:
     void onQueryFeaturesCompleted(QUuid, Esri::ArcGISRuntime::FeatureQueryResult *queryResult);

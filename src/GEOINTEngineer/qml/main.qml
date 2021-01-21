@@ -58,6 +58,27 @@ ApplicationWindow {
                     Layout.topMargin: 6
                     Layout.fillHeight: true
                     Layout.fillWidth: true
+
+                    onTaskLoaded: {
+                        gpTaskListModel.addTask(geospatialTask);
+                    }
+                }
+
+                ListModel {
+                    id: gpTaskDesignListModel
+                    ListElement {
+                        title: "Average Nearest Neighbor"
+                        description: "Calculates a nearest neighbor index based on the average distance from each feature to its nearest neighboring feature."
+                    }
+                    ListElement {
+                        title: "High/Low Clustering"
+                        description: "Measures the degree of clustering for either high or low values using the Getis-Ord General G statistic."
+                    }
+                }
+
+
+                GeospatialTaskListModel {
+                    id: gpTaskListModel
                 }
             }
 
@@ -86,53 +107,36 @@ ApplicationWindow {
 
                 StackLayout {
                     id: stackLayout
-                    currentIndex: 1
 
-                    Rectangle {
-                            color: 'teal'
-                            implicitWidth: 200
-                            implicitHeight: 200
-                        }
-                        Rectangle {
-                            color: 'plum'
-                            implicitWidth: 300
-                            implicitHeight: 200
-                        }
-                    /*
-                    Item {
-                        id: gpTool1
+                    Repeater {
+                        id: gpTaskRepeater
+                        model: gpTaskListModel
 
                         ColumnLayout {
-                            Button {
-                                Layout.alignment: Qt.AlignTop | Qt.AlignLeft
-                                text: qsTr("<")
+                            Label {
+                                id: titleLabel
+                                text: model.title
+                                Layout.fillWidth: true
+                                horizontalAlignment: Qt.AlignHCenter
+                                verticalAlignment: Qt.AlignTop
+                                wrapMode: Text.Wrap
                             }
 
-                            Button {
-                                Layout.alignment: Qt.AlignBottom | Qt.AlignRight
-                                text: qsTr("Execute")
+                            Label {
+                                id: descriptionLabel
+                                text: model.description
+                                Layout.fillWidth: true
+                                wrapMode: Text.WordWrap
+                                font.italic: true
                             }
                         }
                     }
-                    Item {
-                        id: gpTool2
-                        Button {
-                            text: qsTr("Execute")
-                        }
-                    }
-                    Item {
-                        id: gpTool3s
-                        Button {
-                            text: qsTr("Execute")
-                        }
-                    }*/
                 }
 
                 PageIndicator {
-                        currentIndex: stackLayout.currentIndex
-                        count: stackLayout.count
-                    }
-
+                    currentIndex: stackLayout.currentIndex
+                    count: stackLayout.count
+                }
             }
         }
     }

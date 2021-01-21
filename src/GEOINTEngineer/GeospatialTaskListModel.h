@@ -37,7 +37,7 @@ class GeospatialTaskListModel : public QAbstractListModel
 public:
     explicit GeospatialTaskListModel(QObject *parent = nullptr);
 
-    void addTask(LocalGeospatialTask *geospatialTask);
+    Q_INVOKABLE void addTask(LocalGeospatialTask *geospatialTask);
 
     QHash<int, QByteArray> roleNames() const override;
     int rowCount(const QModelIndex &parent = QModelIndex()) const override;

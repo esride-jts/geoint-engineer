@@ -12,6 +12,8 @@
 //
 
 #include "GEOINTEngineer.h"
+#include "GeospatialTaskListModel.h"
+#include "LocalGeospatialTask.h"
 
 #include "ArcGISRuntimeEnvironment.h"
 #include "MapQuickView.h"
@@ -47,6 +49,8 @@ int main(int argc, char *argv[])
 
     // Register the GEOINTEngineer (QQuickItem) for QML
     qmlRegisterType<GEOINTEngineer>("Esri.GEOINTEngineer", 1, 0, "GEOINTEngineer");
+    qmlRegisterType<GeospatialTaskListModel>("Esri.GEOINTEngineer", 1, 0, "GeospatialTaskListModel");
+    qmlRegisterUncreatableType<LocalGeospatialTask>("Esri.GEOINTEngineer", 1, 0, "LocalGeospatialTask", "Represents a local geospatial task.");
 
     // Activate the styling
     QQuickStyle::setStyle("Material");

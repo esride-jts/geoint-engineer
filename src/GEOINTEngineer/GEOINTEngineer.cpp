@@ -13,6 +13,7 @@
 #include "GEOINTEngineer.h"
 #include "GeospatialTaskListModel.h"
 #include "LocalGeospatialServer.h"
+#include "LocalGeospatialTask.h"
 
 #include "Basemap.h"
 #include "FeatureCollectionLayer.h"
@@ -43,6 +44,7 @@ GEOINTEngineer::GEOINTEngineer(QObject *parent /* = nullptr */):
 {
     connect(m_localGeospatialServer, &LocalGeospatialServer::mapLoaded, this, &GEOINTEngineer::onMapLoaded);
     connect(m_localGeospatialServer, &LocalGeospatialServer::mapServiceLoaded, this, &GEOINTEngineer::onMapServiceLoaded);
+    connect(m_localGeospatialServer, &LocalGeospatialServer::taskLoaded, this, &GEOINTEngineer::onTaskLoaded);
     connect(m_localGeospatialServer, &LocalGeospatialServer::taskCompleted, this, &GEOINTEngineer::onTaskCompleted);
 }
 
@@ -253,7 +255,8 @@ void GEOINTEngineer::onMapServiceLoaded(ArcGISMapImageLayer *mapImageLayer)
 
 void GEOINTEngineer::onTaskLoaded(LocalGeospatialTask *geospatialTask)
 {
-    m_geospatialTaskListModel->addTask(geospatialTask);
+    //m_geospatialTaskListModel->addTask(geospatialTask);
+    emit taskLoaded(geospatialTask);
 }
 
 void GEOINTEngineer::onTaskCompleted(GeoprocessingResult *result)
