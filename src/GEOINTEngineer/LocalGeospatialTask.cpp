@@ -48,6 +48,11 @@ QString LocalGeospatialTask::description() const
     return m_geoprocessingTask->geoprocessingTaskInfo().description();
 }
 
+QList<GeoprocessingParameterInfo> LocalGeospatialTask::parameters() const
+{
+    return m_geoprocessingTask->geoprocessingTaskInfo().parameterInfos();
+}
+
 bool LocalGeospatialTask::hasInputFeaturesParameter() const
 {
     GeoprocessingTaskInfo taskInfo = m_geoprocessingTask->geoprocessingTaskInfo();

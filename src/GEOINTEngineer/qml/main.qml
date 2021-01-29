@@ -60,6 +60,10 @@ ApplicationWindow {
                     Layout.fillWidth: true
 
                     onTaskLoaded: {
+                        if (-1 === stackLayout.currentIndex) {
+                            gpTaskParameterModel.updateParameters(geospatialTask);
+                        }
+
                         gpTaskListModel.addTask(geospatialTask);
                     }
                 }
@@ -76,9 +80,12 @@ ApplicationWindow {
                     }
                 }
 
-
                 GeospatialTaskListModel {
                     id: gpTaskListModel
+                }
+
+                GeospatialTaskParameterModel {
+                    id: gpTaskParameterModel
                 }
             }
 
@@ -94,14 +101,22 @@ ApplicationWindow {
                         Layout.alignment: Qt.AlignLeft
                         text: qsTr("<")
                         enabled: 0 < stackLayout.currentIndex
-                        onClicked: stackLayout.currentIndex--
+                        onClicked: {
+                            stackLayout.currentIndex--;
+                            var geospatialTask = gpTaskListModel.task(stackLayout.currentIndex);
+                            gpTaskParameterModel.updateParameters(geospatialTask);
+                        }
                     }
 
                     Button {
                         Layout.alignment: Qt.AlignRight
                         text: qsTr(">")
                         enabled: stackLayout.currentIndex < stackLayout.count - 1
-                        onClicked: stackLayout.currentIndex++
+                        onClicked: {
+                            stackLayout.currentIndex++;
+                            var geospatialTask = gpTaskListModel.task(stackLayout.currentIndex);
+                            gpTaskParameterModel.updateParameters(geospatialTask);
+                        }
                     }
                 }
 
@@ -129,6 +144,26 @@ ApplicationWindow {
                                 Layout.fillWidth: true
                                 wrapMode: Text.WordWrap
                                 font.italic: true
+                            }
+
+                            Repeater {
+                                id: gpTaskParameterRepeater
+                                model: gpTaskParameterModel
+
+                                ColumnLayout {
+                                    Layout.topMargin: 15
+
+                                    Label {
+                                        text: model.parameterName
+                                        Layout.fillWidth: true
+                                        wrapMode: Text.WordWrap
+                                    }
+
+                                    Loader {
+                                        Layout.fillWidth: true
+                                        source: model.uiEditorSource
+                                    }
+                                }
                             }
                         }
                     }

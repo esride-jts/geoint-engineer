@@ -26,16 +26,31 @@
 #ifndef GEOSPATIALTASKPARAMETER_H
 #define GEOSPATIALTASKPARAMETER_H
 
+namespace Esri
+{
+namespace ArcGISRuntime
+{
+class GeoprocessingParameter;
+}
+}
+
 #include <QObject>
 
 class GeospatialTaskParameter : public QObject
 {
+    Q_PROPERTY(QString name READ parameterName)
+
     Q_OBJECT
 public:
-    explicit GeospatialTaskParameter(QObject *parent = nullptr);
+    explicit GeospatialTaskParameter(QString const &parameterName, Esri::ArcGISRuntime::GeoprocessingParameter *geoprocessingParameter, QObject *parent = nullptr);
+
+    QString parameterName() const;
 
 signals:
 
+private:
+    QString m_parameterName;
+    Esri::ArcGISRuntime::GeoprocessingParameter *m_geoprocessingParameter;
 };
 
 #endif // GEOSPATIALTASKPARAMETER_H

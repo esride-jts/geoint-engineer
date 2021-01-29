@@ -1,6 +1,7 @@
 <RCC>
     <qresource prefix="/qml">
         <file>main.qml</file>
-		<file>GEOINTEngineerForm.qml</file>
+        <file>GEOINTEngineerForm.qml</file>
+        <file>GpStringInput.qml</file>
     </qresource>
 </RCC>

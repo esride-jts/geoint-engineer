@@ -13,6 +13,7 @@
 
 #include "GEOINTEngineer.h"
 #include "GeospatialTaskListModel.h"
+#include "GeospatialTaskParameterModel.h"
 #include "LocalGeospatialTask.h"
 
 #include "ArcGISRuntimeEnvironment.h"
@@ -51,6 +52,7 @@ int main(int argc, char *argv[])
     qmlRegisterType<GEOINTEngineer>("Esri.GEOINTEngineer", 1, 0, "GEOINTEngineer");
     qmlRegisterType<GeospatialTaskListModel>("Esri.GEOINTEngineer", 1, 0, "GeospatialTaskListModel");
     qmlRegisterUncreatableType<LocalGeospatialTask>("Esri.GEOINTEngineer", 1, 0, "LocalGeospatialTask", "Represents a local geospatial task.");
+    qmlRegisterType<GeospatialTaskParameterModel>("Esri.GEOINTEngineer", 1, 0, "GeospatialTaskParameterModel");
 
     // Activate the styling
     QQuickStyle::setStyle("Material");

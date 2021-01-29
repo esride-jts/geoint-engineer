@@ -22,10 +22,20 @@
 // the licensors of this Program grant you additional permission to convey the resulting work.
 // See <https://developers.arcgis.com/qt/> for further information.
 
-
 #include "GeospatialTaskParameter.h"
 
-GeospatialTaskParameter::GeospatialTaskParameter(QObject *parent) : QObject(parent)
+#include "GeoprocessingParameter.h"
+
+using namespace Esri::ArcGISRuntime;
+
+GeospatialTaskParameter::GeospatialTaskParameter(const QString &parameterName,
+                                                 GeoprocessingParameter *geoprocessingParameter,
+                                                 QObject *parent) : QObject(parent), m_parameterName(parameterName), m_geoprocessingParameter(geoprocessingParameter)
 {
-    //TODO: Wrap a GeoprocessingParameter for QML usage
+
+}
+
+QString GeospatialTaskParameter::parameterName() const
+{
+    return m_parameterName;
 }

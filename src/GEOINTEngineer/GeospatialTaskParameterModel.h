@@ -23,22 +23,21 @@
 // See <https://developers.arcgis.com/qt/> for further information.
 
 
-#ifndef GEOSPATIALTASKLISTMODEL_H
-#define GEOSPATIALTASKLISTMODEL_H
+#ifndef GEOSPATIALTASKPARAMETERMODEL_H
+#define GEOSPATIALTASKPARAMETERMODEL_H
 
 #include <QAbstractListModel>
 #include <QObject>
 
 class LocalGeospatialTask;
 
-class GeospatialTaskListModel : public QAbstractListModel
+class GeospatialTaskParameterModel : public QAbstractListModel
 {
     Q_OBJECT
 public:
-    explicit GeospatialTaskListModel(QObject *parent = nullptr);
+    explicit GeospatialTaskParameterModel(QObject *parent = nullptr);
 
-    Q_INVOKABLE void addTask(LocalGeospatialTask *geospatialTask);
-    Q_INVOKABLE LocalGeospatialTask* task(int taskIndex) const;
+    Q_INVOKABLE void updateParameters(LocalGeospatialTask *localGeospatialTask);
 
     QHash<int, QByteArray> roleNames() const override;
     int rowCount(const QModelIndex &parent = QModelIndex()) const override;
@@ -48,11 +47,11 @@ signals:
 
 private:
     enum RoleNames {
-        TitleRole = Qt::UserRole + 1,
-        DescriptionRole = Qt::UserRole + 2
+        ParameterNameRole = Qt::UserRole + 1,
+        UiEditorRole = Qt::UserRole + 2
     };
 
-    QList<LocalGeospatialTask*> m_geospatialTasks;
+    LocalGeospatialTask *m_localGeospatialTask = nullptr;
 };
 
-#endif // GEOSPATIALTASKLISTMODEL_H
+#endif // GEOSPATIALTASKPARAMETERMODEL_H

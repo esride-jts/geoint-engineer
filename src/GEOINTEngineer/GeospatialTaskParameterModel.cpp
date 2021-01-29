@@ -22,66 +22,66 @@
 // the licensors of this Program grant you additional permission to convey the resulting work.
 // See <https://developers.arcgis.com/qt/> for further information.
 
-#include "GeospatialTaskListModel.h"
+#include "GeospatialTaskParameterModel.h"
 #include "LocalGeospatialTask.h"
 
-GeospatialTaskListModel::GeospatialTaskListModel(QObject *parent) : QAbstractListModel(parent)
+#include "GeoprocessingParameterInfo.h"
+
+using namespace Esri::ArcGISRuntime;
+
+GeospatialTaskParameterModel::GeospatialTaskParameterModel(QObject *parent)
+    : QAbstractListModel(parent)
 {
 }
 
-void GeospatialTaskListModel::addTask(LocalGeospatialTask *geospatialTask)
+void GeospatialTaskParameterModel::updateParameters(LocalGeospatialTask *localGeospatialTask)
 {
-    beginInsertRows(QModelIndex(), rowCount(), rowCount());
-    m_geospatialTasks.append(geospatialTask);
-    endInsertRows();
+    beginResetModel();
+    m_localGeospatialTask = localGeospatialTask;
+    endResetModel();
 }
 
-LocalGeospatialTask* GeospatialTaskListModel::task(int taskIndex) const
+QHash<int, QByteArray> GeospatialTaskParameterModel::roleNames() const
 {
-    if (m_geospatialTasks.size() <= taskIndex)
+    QHash<int, QByteArray> roleNames;
+    roleNames.insert(RoleNames::ParameterNameRole, QString("parameterName").toUtf8());
+    roleNames.insert(RoleNames::UiEditorRole, QString("uiEditorSource").toUtf8());
+    return roleNames;
+}
+
+int GeospatialTaskParameterModel::rowCount(const QModelIndex &parent) const
+{
+    if (nullptr == m_localGeospatialTask)
     {
-        qDebug() << "Wrong index!";
-        return nullptr;
+        return 0;
     }
 
-    return m_geospatialTasks[taskIndex];
+    return m_localGeospatialTask->parameters().size();
 }
 
-QHash<int, QByteArray> GeospatialTaskListModel::roleNames() const
+QVariant GeospatialTaskParameterModel::data(const QModelIndex &index, int role) const
 {
-    QHash<int, QByteArray> roles;
-    roles.insert(RoleNames::TitleRole, QString("title").toUtf8());
-    roles.insert(RoleNames::DescriptionRole, QString("description").toUtf8());
-    return roles;
-}
-
-int GeospatialTaskListModel::rowCount(const QModelIndex&) const
-{
-    return m_geospatialTasks.size();
-}
-
-QVariant GeospatialTaskListModel::data(const QModelIndex &index, int role) const
-{
-    if (index.row() < 0 || m_geospatialTasks.size() <= index.row())
+    if (index.row() < 0 || m_localGeospatialTask->parameters().size() <= index.row())
     {
         qDebug() << "Wrong index!";
         return QVariant();
     }
 
-    LocalGeospatialTask *geospatialTask = m_geospatialTasks.at(index.row());
+    GeoprocessingParameterInfo parameterInfo = m_localGeospatialTask->parameters().at(index.row());
     switch (role)
     {
-    case TitleRole:
-        qDebug() << "title:" << geospatialTask->displayName();
-        return geospatialTask->displayName();
+    case ParameterNameRole:
+        return parameterInfo.displayName();
 
-    case DescriptionRole:
-        qDebug() << "description:" << geospatialTask->description();
-        return geospatialTask->description();
+    case UiEditorRole:
+        switch (parameterInfo.dataType())
+        {
+         default:
+            return "GpStringInput.qml";
+        }
 
     default:
         qDebug() << "Unknown role!";
         return QVariant();
     }
-
 }

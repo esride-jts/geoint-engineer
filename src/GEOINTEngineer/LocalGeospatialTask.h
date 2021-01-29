@@ -37,6 +37,7 @@ class GeoprocessingResult;
 }
 }
 
+#include "GeoprocessingParameterInfo.h"
 #include "GeoprocessingParameters.h"
 #include "LocalServerTypes.h"
 
@@ -54,6 +55,7 @@ public:
 
     QString displayName() const;
     QString description() const;
+    QList<Esri::ArcGISRuntime::GeoprocessingParameterInfo> parameters() const;
 
     bool hasInputFeaturesParameter() const;
     void executeTask(Esri::ArcGISRuntime::GeoprocessingFeatures *inputFeatures);
