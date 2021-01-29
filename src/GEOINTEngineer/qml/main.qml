@@ -144,7 +144,7 @@ ApplicationWindow {
                                 Layout.fillWidth: true
                                 wrapMode: Text.WordWrap
                                 font.italic: true
-                            }
+                            }                            
 
                             Repeater {
                                 id: gpTaskParameterRepeater
@@ -165,6 +165,7 @@ ApplicationWindow {
                                     }
                                 }
                             }
+
                         }
                     }
                 }
