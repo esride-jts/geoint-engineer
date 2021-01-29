@@ -3,5 +3,11 @@
         <file>main.qml</file>
         <file>GEOINTEngineerForm.qml</file>
         <file>GpStringInput.qml</file>
+        <file>GpBooleanInput.qml</file>
+        <file>GpDoubleInput.qml</file>
+        <file>GpLongInput.qml</file>
+        <file>GpDateInput.qml</file>
+        <file>GpFeaturesInput.qml</file>
+        <file>GpLinearUnitInput.qml</file>
     </qresource>
 </RCC>

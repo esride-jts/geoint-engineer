@@ -20,10 +20,6 @@ import QtQuick.Layouts 1.3
   };
  */
 
-TextField {
-    placeholderText: model.parameterName
+CheckBox {
     Layout.fillWidth: true
-    validator: RegExpValidator {
-        regExp: /.*/
-    }
 }
