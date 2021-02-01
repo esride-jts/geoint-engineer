@@ -89,7 +89,7 @@ void GEOINTEngineer::initOperationalLayers()
     m_inputFeatures = new FeatureCollectionTable(fields, GeometryType::Polygon, m_mapView->spatialReference(), this);
     connect(m_inputFeatures, &FeatureCollectionTable::addFeatureCompleted, this, &GEOINTEngineer::onInputFeatureAdded);
     connect(m_inputFeatures, &FeatureCollectionTable::deleteFeaturesCompleted, this, &GEOINTEngineer::onFeaturesDeleted);
-    connect(m_inputFeatures, &FeatureCollectionTable::queryFeaturesCompleted, this, &GEOINTEngineer::onQueryFeaturesCompleted);
+    connect(m_inputFeatures, &FeatureCollectionTable::queryFeaturesCompleted, this, &GEOINTEngineer::onDeleteAllInputFeatures);
 
     SimpleLineSymbol* envelopeBoundarySymbol = new SimpleLineSymbol(SimpleLineSymbolStyle::Solid, QColor("cyan"), 2.0, this);
     SimpleFillSymbol* envelopeSymbol = new SimpleFillSymbol(SimpleFillSymbolStyle::DiagonalCross, QColor("cyan"), envelopeBoundarySymbol, this);
@@ -113,6 +113,7 @@ void GEOINTEngineer::deleteAllInputFeatures()
         return;
     }
 
+    m_deletePostAction = DeletePostAction::None;
     QueryParameters allFeaturesQuery;
     allFeaturesQuery.setWhereClause("1=1");
     m_inputFeatures->queryFeatures(allFeaturesQuery);
@@ -162,7 +163,11 @@ void GEOINTEngineer::addMapExtentAsGraphic()
     // First of all delete all input features
     // when delete all was executed, the current map extent
     // is added as a new input feature
-    deleteAllInputFeatures();
+
+    m_deletePostAction = DeletePostAction::AddInputFeature;
+    QueryParameters allFeaturesQuery;
+    allFeaturesQuery.setWhereClause("1=1");
+    m_inputFeatures->queryFeatures(allFeaturesQuery);
 }
 
 void GEOINTEngineer::executeTask(GeospatialTaskListModel *taskModel, int taskIndex)
@@ -218,7 +223,7 @@ void GEOINTEngineer::addInputFeaturesUsingCurrentExtent()
     m_inputFeatures->addFeature(envelopeAsFeature);
 }
 
-void GEOINTEngineer::onQueryFeaturesCompleted(QUuid, FeatureQueryResult *queryResult)
+void GEOINTEngineer::onDeleteAllInputFeatures(QUuid, FeatureQueryResult *queryResult)
 {
     if (nullptr == queryResult)
     {
@@ -229,8 +234,16 @@ void GEOINTEngineer::onQueryFeaturesCompleted(QUuid, FeatureQueryResult *queryRe
     QList<Feature*> featuresForDeletion = extractFeatures(queryResult);
     if (featuresForDeletion.isEmpty())
     {
-        addInputFeaturesUsingCurrentExtent();
-        return;
+        switch (m_deletePostAction)
+        {
+        case DeletePostAction::AddInputFeature:
+            // No need for delete just add the map extent as feature
+            addInputFeaturesUsingCurrentExtent();
+            return;
+
+        default:
+            return;
+        }
     }
 
     // "DB-Delete" all features from the table
@@ -254,8 +267,18 @@ void GEOINTEngineer::onFeaturesDeleted(QUuid taskId, bool deleted)
 
     if (deleted)
     {
-        addInputFeaturesUsingCurrentExtent();
+        switch (m_deletePostAction)
+        {
+        case DeletePostAction::AddInputFeature:
+            addInputFeaturesUsingCurrentExtent();
+            return;
+
+        default:
+            return;
+        }
     }
+
+    qDebug() << "Delete input features failed!";
 }
 
 void GEOINTEngineer::onInputFeatureAdded(QUuid, bool added)

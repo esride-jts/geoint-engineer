@@ -60,7 +60,7 @@ signals:
     void taskLoaded(LocalGeospatialTask *geospatialTask);
 
 private slots:
-    void onQueryFeaturesCompleted(QUuid, Esri::ArcGISRuntime::FeatureQueryResult *queryResult);
+    void onDeleteAllInputFeatures(QUuid, Esri::ArcGISRuntime::FeatureQueryResult *queryResult);
     void onFeaturesDeleted(QUuid, bool);
     void onInputFeatureAdded(QUuid, bool);
     void onMapLoaded(Esri::ArcGISRuntime::Map *map);
@@ -69,6 +69,11 @@ private slots:
     void onTaskCompleted(Esri::ArcGISRuntime::GeoprocessingResult *result, Esri::ArcGISRuntime::ArcGISMapImageLayer *mapImageLayerResult);
 
 private:
+    enum class DeletePostAction {
+        None = 0,
+        AddInputFeature = 1
+    };
+
     void addInputFeaturesUsingCurrentExtent();
     void initOperationalLayers();
     QList<Esri::ArcGISRuntime::Feature*> extractFeatures(Esri::ArcGISRuntime::FeatureQueryResult *queryResult);
@@ -89,6 +94,7 @@ private:
     LocalGeospatialTask* m_currentGeospatialTask = nullptr;
 
     bool m_operationalLayerInitialized;
+    DeletePostAction m_deletePostAction = DeletePostAction::None;
 };
 
 #endif // GEOINTENGINEER_H
