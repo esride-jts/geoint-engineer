@@ -26,6 +26,10 @@ Item {
         model.deleteAllInputFeatures();
     }
 
+    function deleteAllOutputFeatures() {
+        model.deleteAllOutputFeatures();
+    }
+
     function executeTask(taskModel, taskIndex) {
         model.executeTask(taskModel, taskIndex);
     }

@@ -46,6 +46,18 @@ ApplicationWindow {
                     engineerForm.deleteAllInputFeatures();
                 }
             }
+
+            ToolButton {
+                text: qsTr("Clear Output")
+
+                onClicked: {
+                    engineerForm.deleteAllOutputFeatures();
+                }
+            }
+
+            Item {
+                Layout.fillWidth: true
+            }
         }
     }
 

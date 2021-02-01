@@ -121,7 +121,21 @@ void GEOINTEngineer::deleteAllInputFeatures()
 
 void GEOINTEngineer::deleteAllOutputFeatures()
 {
+    QList<ArcGISMapImageLayer*> outputLayers;
+    for(Layer *operationalLayer : *m_map->operationalLayers())
+    {
+        ArcGISMapImageLayer *mapImageLayer = dynamic_cast<ArcGISMapImageLayer*>(operationalLayer);
+        if (nullptr != mapImageLayer)
+        {
+            outputLayers.append(mapImageLayer);
+        }
+    }
 
+    foreach (ArcGISMapImageLayer *outputLayer, outputLayers)
+    {
+        m_map->operationalLayers()->removeOne(outputLayer);
+        delete outputLayer;
+    }
 }
 
 void GEOINTEngineer::deleteAllFeatures()
