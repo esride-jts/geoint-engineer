@@ -146,13 +146,8 @@ QList<Feature*> GEOINTEngineer::extractFeatures(FeatureQueryResult *queryResult)
     return features;
 }
 
-void GEOINTEngineer::executeTask(GeospatialTaskListModel *taskModel, int taskIndex)
+void GEOINTEngineer::addMapExtentAsGraphic()
 {
-    m_geospatialTaskListModel = taskModel;
-
-    // Set the current task
-    m_currentGeospatialTask = m_geospatialTaskListModel->task(taskIndex);
-
     if (!m_operationalLayerInitialized)
     {
         // Add the operational layers
@@ -163,6 +158,24 @@ void GEOINTEngineer::executeTask(GeospatialTaskListModel *taskModel, int taskInd
     // when delete all was executed, the current map extent
     // is added as a new input feature
     deleteAllInputFeatures();
+}
+
+void GEOINTEngineer::executeTask(GeospatialTaskListModel *taskModel, int taskIndex)
+{
+    m_geospatialTaskListModel = taskModel;
+
+    // Set the current task
+    m_currentGeospatialTask = m_geospatialTaskListModel->task(taskIndex);
+
+    if (!m_operationalLayerInitialized)
+    {
+        qDebug() << "Operational input layers were not initialized!";
+        return;
+    }
+
+    qDebug() << "Executing " << m_currentGeospatialTask->displayName() << " using the input features...";
+    GeoprocessingFeatures* mapExtentAsFeatures = new GeoprocessingFeatures(m_inputFeatures, this);
+    m_localGeospatialServer->executeTask(m_currentGeospatialTask, mapExtentAsFeatures);
 }
 
 void GEOINTEngineer::executeAllTasks(GeospatialTaskListModel *taskModel)
@@ -174,17 +187,16 @@ void GEOINTEngineer::executeAllTasks(GeospatialTaskListModel *taskModel)
 
     if (!m_operationalLayerInitialized)
     {
-        // Add the operational layers
-        initOperationalLayers();
+        qDebug() << "Operational input layers were not initialized!";
+        return;
     }
 
-    // First of all delete all input features
-    // when delete all was executed, the current map extent
-    // is added as a new input feature
-    deleteAllInputFeatures();
+    qDebug() << "Executing all tasks using the input features...";
+    GeoprocessingFeatures* mapExtentAsFeatures = new GeoprocessingFeatures(m_inputFeatures, this);
+    m_localGeospatialServer->executeTasks(mapExtentAsFeatures);
 }
 
-void GEOINTEngineer::executeTasksUsingCurrentExtent()
+void GEOINTEngineer::addInputFeaturesUsingCurrentExtent()
 {
     Viewpoint boundingViewpoint = m_mapView->currentViewpoint(ViewpointType::BoundingGeometry);
     Envelope boundingBox = boundingViewpoint.targetGeometry();
@@ -212,12 +224,12 @@ void GEOINTEngineer::onQueryFeaturesCompleted(QUuid, FeatureQueryResult *queryRe
     QList<Feature*> featuresForDeletion = extractFeatures(queryResult);
     if (featuresForDeletion.isEmpty())
     {
-        executeTasksUsingCurrentExtent();
+        addInputFeaturesUsingCurrentExtent();
         return;
     }
 
     // "DB-Delete" all features from the table
-    // Schedule release memory when the task was completed
+    // Schedule release memory when the delete was completed
     // All features have the same parent
     Feature *firstFeature = featuresForDeletion[0];
     QUuid taskId = firstFeature->featureTable()->deleteFeatures(featuresForDeletion).taskId();
@@ -237,7 +249,7 @@ void GEOINTEngineer::onFeaturesDeleted(QUuid taskId, bool deleted)
 
     if (deleted)
     {
-        executeTasksUsingCurrentExtent();
+        addInputFeaturesUsingCurrentExtent();
     }
 }
 
@@ -245,22 +257,11 @@ void GEOINTEngineer::onInputFeatureAdded(QUuid, bool added)
 {
     if (added)
     {
-        if (nullptr == m_currentGeospatialTask)
-        {
-            qDebug() << "Executing all tasks using the current map extent...";
-            GeoprocessingFeatures* mapExtentAsFeatures = new GeoprocessingFeatures(m_inputFeatures, this);
-            m_localGeospatialServer->executeTasks(mapExtentAsFeatures);
-        }
-        else
-        {
-            qDebug() << "Executing " << m_currentGeospatialTask->displayName() << " using the current map extent...";
-            GeoprocessingFeatures* mapExtentAsFeatures = new GeoprocessingFeatures(m_inputFeatures, this);
-            m_localGeospatialServer->executeTask(m_currentGeospatialTask, mapExtentAsFeatures);
-        }
+        qDebug() << "Input feature was added.";
         return;
     }
 
-    qDebug() << "Added the current map extent as feature failed!";
+    qDebug() << "Adding input feature failed!";
 }
 
 void GEOINTEngineer::onMapLoaded(Map* map)

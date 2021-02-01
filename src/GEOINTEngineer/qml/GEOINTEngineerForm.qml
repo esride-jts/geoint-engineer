@@ -18,6 +18,10 @@ import Esri.GEOINTEngineer 1.0
 Item {
     id: geointForm
 
+    function addMapExtentAsGraphic() {
+        model.addMapExtentAsGraphic();
+    }
+
     function executeTask(taskModel, taskIndex) {
         model.executeTask(taskModel, taskIndex);
     }

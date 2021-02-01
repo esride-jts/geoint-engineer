@@ -48,6 +48,7 @@ public:
     explicit GEOINTEngineer(QObject *parent = nullptr);
     ~GEOINTEngineer() override;
 
+    Q_INVOKABLE void addMapExtentAsGraphic();
     Q_INVOKABLE void executeTask(GeospatialTaskListModel *taskModel, int taskIndex);
     Q_INVOKABLE void executeAllTasks(GeospatialTaskListModel *taskModel);
 
@@ -65,7 +66,7 @@ private slots:
     void onTaskCompleted(Esri::ArcGISRuntime::GeoprocessingResult *result, Esri::ArcGISRuntime::ArcGISMapImageLayer *mapImageLayerResult);
 
 private:
-    void executeTasksUsingCurrentExtent();
+    void addInputFeaturesUsingCurrentExtent();
     void initOperationalLayers();
     void deleteAllInputFeatures();
     void deleteAllOutputFeatures();

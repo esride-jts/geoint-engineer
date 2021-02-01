@@ -22,6 +22,8 @@ import QtQuick.Layouts 1.3
 
 RowLayout {
 
+    signal addMapExtentGraphic();
+
     TextField {
         placeholderText: model.parameterName
         validator: RegExpValidator {
@@ -31,5 +33,9 @@ RowLayout {
 
     Button {
         text: qsTr("Map Extent")
+
+        onClicked: {
+            addMapExtentGraphic();
+        }
     }
 }

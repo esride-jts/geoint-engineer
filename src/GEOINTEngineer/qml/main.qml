@@ -160,8 +160,17 @@ ApplicationWindow {
                                     }
 
                                     Loader {
+                                        id: uiEditorLoader
                                         Layout.fillWidth: true
                                         source: model.uiEditorSource
+                                    }
+
+                                    Connections {
+                                        target: uiEditorLoader.item
+
+                                        onAddMapExtentGraphic: {
+                                            engineerForm.addMapExtentAsGraphic();
+                                        }
                                     }
                                 }
                             }
