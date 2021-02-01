@@ -20,22 +20,18 @@ import QtQuick.Layouts 1.3
   };
  */
 
-RowLayout {
+Item {
 
     signal addMapExtentGraphic();
 
-    TextField {
-        placeholderText: model.parameterName
-        validator: RegExpValidator {
-            regExp: /.*/
-        }
-    }
+    Row {
+        Button {
+            anchors.top: parent.verticalCenter
+            text: qsTr("Map Extent")
 
-    Button {
-        text: qsTr("Map Extent")
-
-        onClicked: {
-            addMapExtentGraphic();
+            onClicked: {
+                addMapExtentGraphic();
+            }
         }
     }
 }

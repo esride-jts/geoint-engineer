@@ -108,6 +108,11 @@ void GEOINTEngineer::initOperationalLayers()
 
 void GEOINTEngineer::deleteAllInputFeatures()
 {
+    if (nullptr == m_inputFeatures)
+    {
+        return;
+    }
+
     QueryParameters allFeaturesQuery;
     allFeaturesQuery.setWhereClause("1=1");
     m_inputFeatures->queryFeatures(allFeaturesQuery);

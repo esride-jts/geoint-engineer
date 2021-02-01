@@ -36,11 +36,15 @@ ApplicationWindow {
     }
 
     header: ToolBar {
-        Button {
-            text: qsTr("Execute")
+        RowLayout {
+            anchors.fill: parent
 
-            onClicked: {
-                engineerForm.executeAllTasks(gpTaskListModel);
+            ToolButton {
+                text: qsTr("Clear Input")
+
+                onClicked: {
+                    engineerForm.deleteAllInputFeatures();
+                }
             }
         }
     }
@@ -128,6 +132,7 @@ ApplicationWindow {
                         model: gpTaskListModel
 
                         ColumnLayout {
+                            id: parameterTaskLayout
 
                             Label {
                                 id: titleLabel
@@ -146,35 +151,42 @@ ApplicationWindow {
                                 font.italic: true
                             }                            
 
-                            Repeater {
-                                id: gpTaskParameterRepeater
-                                model: gpTaskParameterModel
 
-                                ColumnLayout {
-                                    Layout.topMargin: 15
+                            ScrollView {
+                                Layout.fillHeight: true
+                                Layout.fillWidth: true
 
-                                    Label {
-                                        text: model.parameterName
-                                        Layout.fillWidth: true
-                                        wrapMode: Text.WordWrap
-                                    }
+                                ScrollBar.horizontal.policy: ScrollBar.AlwaysOff
 
-                                    Loader {
-                                        id: uiEditorLoader
-                                        Layout.fillWidth: true
-                                        source: model.uiEditorSource
-                                    }
+                                ListView {
+                                    id: gpTaskParameterRepeater
+                                    model: gpTaskParameterModel
 
-                                    Connections {
-                                        target: uiEditorLoader.item
+                                    delegate: Column {
+                                        width: gpTaskParameterRepeater.width
 
-                                        onAddMapExtentGraphic: {
-                                            engineerForm.addMapExtentAsGraphic();
+                                        Label {
+                                            text: model.parameterName
+                                            width: parent.width
+                                            wrapMode: Text.WordWrap
+                                        }
+
+                                        Loader {
+                                            id: uiEditorLoader
+                                            width: parent.width
+                                            source: model.uiEditorSource
+                                        }
+
+                                        Connections {
+                                            target: uiEditorLoader.item
+
+                                            function onAddMapExtentGraphic() {
+                                                engineerForm.addMapExtentAsGraphic();
+                                            }
                                         }
                                     }
                                 }
                             }
-
                         }
                     }
                 }

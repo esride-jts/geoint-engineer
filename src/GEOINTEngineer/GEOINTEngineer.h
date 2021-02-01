@@ -49,6 +49,9 @@ public:
     ~GEOINTEngineer() override;
 
     Q_INVOKABLE void addMapExtentAsGraphic();
+    Q_INVOKABLE void deleteAllInputFeatures();
+    Q_INVOKABLE void deleteAllOutputFeatures();
+    Q_INVOKABLE void deleteAllFeatures();
     Q_INVOKABLE void executeTask(GeospatialTaskListModel *taskModel, int taskIndex);
     Q_INVOKABLE void executeAllTasks(GeospatialTaskListModel *taskModel);
 
@@ -68,9 +71,6 @@ private slots:
 private:
     void addInputFeaturesUsingCurrentExtent();
     void initOperationalLayers();
-    void deleteAllInputFeatures();
-    void deleteAllOutputFeatures();
-    void deleteAllFeatures();
     QList<Esri::ArcGISRuntime::Feature*> extractFeatures(Esri::ArcGISRuntime::FeatureQueryResult *queryResult);
 
     Esri::ArcGISRuntime::MapQuickView* mapView() const;

@@ -21,5 +21,4 @@ import QtQuick.Layouts 1.3
  */
 
 CheckBox {
-    Layout.fillWidth: true
 }

@@ -22,6 +22,10 @@ Item {
         model.addMapExtentAsGraphic();
     }
 
+    function deleteAllInputFeatures() {
+        model.deleteAllInputFeatures();
+    }
+
     function executeTask(taskModel, taskIndex) {
         model.executeTask(taskModel, taskIndex);
     }
