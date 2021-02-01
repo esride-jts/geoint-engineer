@@ -56,7 +56,20 @@ int GeospatialTaskParameterModel::rowCount(const QModelIndex &parent) const
         return 0;
     }
 
-    return m_localGeospatialTask->parameters().size();
+    int inputParameterCount = 0;
+    foreach (const GeoprocessingParameterInfo &parameterInfo, m_localGeospatialTask->parameters())
+    {
+        switch (parameterInfo.direction())
+        {
+        case GeoprocessingParameterDirection::Input:
+            inputParameterCount++;
+            break;
+
+        default:
+            break;
+        }
+    }
+    return inputParameterCount;
 }
 
 QVariant GeospatialTaskParameterModel::data(const QModelIndex &index, int role) const
@@ -67,16 +80,34 @@ QVariant GeospatialTaskParameterModel::data(const QModelIndex &index, int role) 
         return QVariant();
     }
 
-    GeoprocessingParameterInfo parameterInfo = m_localGeospatialTask->parameters().at(index.row());
+    int inputParameterIndex = -1;
+    GeoprocessingParameterInfo inputParameterInfo;
+    foreach (const GeoprocessingParameterInfo &parameterInfo, m_localGeospatialTask->parameters())
+    {
+        switch (parameterInfo.direction())
+        {
+        case GeoprocessingParameterDirection::Input:
+            inputParameterIndex++;
+            inputParameterInfo = parameterInfo;
+            break;
+
+        default:
+            break;
+        }
+    }
+
     switch (role)
     {
     case ParameterNameRole:
-        return parameterInfo.displayName();
+        return inputParameterInfo.displayName();
 
     case UiEditorRole:
-        switch (parameterInfo.dataType())
+        switch (inputParameterInfo.dataType())
         {
-         default:
+        case GeoprocessingParameterType::GeoprocessingFeatures:
+            return "GpFeaturesInput.qml";
+
+        default:
             return "GpStringInput.qml";
         }
 

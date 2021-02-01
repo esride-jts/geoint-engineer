@@ -20,10 +20,16 @@ import QtQuick.Layouts 1.3
   };
  */
 
-TextField {
-    placeholderText: model.parameterName
-    Layout.fillWidth: true
-    validator: RegExpValidator {
-        regExp: /.*/
+RowLayout {
+
+    TextField {
+        placeholderText: model.parameterName
+        validator: RegExpValidator {
+            regExp: /.*/
+        }
+    }
+
+    Button {
+        text: qsTr("Map Extent")
     }
 }
