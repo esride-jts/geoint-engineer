@@ -40,7 +40,8 @@ ApplicationWindow {
             anchors.fill: parent
 
             ToolButton {
-                text: qsTr("Clear Input")
+                icon.name: "map-marker-remove-outline"
+                icon.source: "qrc:/Resources/map-marker-remove-outline.svg"
 
                 onClicked: {
                     engineerForm.deleteAllInputFeatures();
@@ -48,7 +49,8 @@ ApplicationWindow {
             }
 
             ToolButton {
-                text: qsTr("Clear Output")
+                icon.name: "map-marker-remove"
+                icon.source: "qrc:/Resources/map-marker-remove.svg"
 
                 onClicked: {
                     engineerForm.deleteAllOutputFeatures();

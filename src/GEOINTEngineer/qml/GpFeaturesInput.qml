@@ -27,7 +27,8 @@ Item {
     Row {
         Button {
             anchors.top: parent.verticalCenter
-            text: qsTr("Map Extent")
+            icon.name: "map"
+            icon.source: "qrc:/Resources/map.svg"
 
             onClicked: {
                 addMapExtentGraphic();

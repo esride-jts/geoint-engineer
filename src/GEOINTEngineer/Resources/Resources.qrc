@@ -1,5 +1,8 @@
 <RCC>
     <qresource prefix="/Resources">
         <file>AppIcon.png</file>
+        <file>map.svg</file>
+        <file>map-marker-remove.svg</file>
+        <file>map-marker-remove-outline.svg</file>
     </qresource>
 </RCC>
