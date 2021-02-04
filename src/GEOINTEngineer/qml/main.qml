@@ -197,6 +197,10 @@ ApplicationWindow {
                                             function onAddMapExtentGraphic() {
                                                 engineerForm.addMapExtentAsGraphic();
                                             }
+
+                                            function onActivatePolygonSketchTool() {
+                                                engineerForm.activatePolygonSketchTool();
+                                            }
                                         }
                                     }
                                 }

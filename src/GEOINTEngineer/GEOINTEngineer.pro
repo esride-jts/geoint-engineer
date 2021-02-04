@@ -38,7 +38,8 @@ HEADERS += \
     GeospatialTaskParameter.h \
     GeospatialTaskParameterModel.h \
     LocalGeospatialServer.h \
-    LocalGeospatialTask.h
+    LocalGeospatialTask.h \
+    MapViewTool.h
 
 SOURCES += \
     GeospatialTaskListModel.cpp \
@@ -46,6 +47,7 @@ SOURCES += \
     GeospatialTaskParameterModel.cpp \
     LocalGeospatialServer.cpp \
     LocalGeospatialTask.cpp \
+    MapViewTool.cpp \
     main.cpp \
     GEOINTEngineer.cpp
 

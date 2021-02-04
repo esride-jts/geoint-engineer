@@ -4,5 +4,6 @@
         <file>map.svg</file>
         <file>map-marker-remove.svg</file>
         <file>map-marker-remove-outline.svg</file>
+        <file>pentagon-outline.svg</file>
     </qresource>
 </RCC>

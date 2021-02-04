@@ -14,6 +14,7 @@
 #include "GeospatialTaskListModel.h"
 #include "LocalGeospatialServer.h"
 #include "LocalGeospatialTask.h"
+#include "MapViewTool.h"
 
 #include "Basemap.h"
 #include "FeatureCollectionLayer.h"
@@ -39,7 +40,8 @@ GEOINTEngineer::GEOINTEngineer(QObject *parent /* = nullptr */):
     m_map(new Map(Basemap::openStreetMap(this), this)),
     m_inputFeatureLayer(new FeatureCollectionLayer(new FeatureCollection(this), this)),
     m_localGeospatialServer(new LocalGeospatialServer(this)),
-    m_operationalLayerInitialized(false)
+    m_operationalLayerInitialized(false),
+    m_polygonSketchTool(new PolygonSketchTool(this))
 {
     connect(m_localGeospatialServer, &LocalGeospatialServer::mapLoaded, this, &GEOINTEngineer::onMapLoaded);
     connect(m_localGeospatialServer, &LocalGeospatialServer::mapServiceLoaded, this, &GEOINTEngineer::onMapServiceLoaded);
@@ -66,6 +68,10 @@ void GEOINTEngineer::setMapView(MapQuickView *mapView)
 
     m_mapView = mapView;
     m_mapView->setMap(m_map);
+
+    connect(m_mapView, &MapQuickView::mousePressed, this, &GEOINTEngineer::onMousePressed);
+    connect(m_mapView, &MapQuickView::mouseMoved, this, &GEOINTEngineer::onMouseMoved);
+    connect(m_mapView, &MapQuickView::mouseReleased, this, &GEOINTEngineer::onMouseReleased);
 
     emit mapViewChanged();
 
@@ -182,6 +188,12 @@ void GEOINTEngineer::addMapExtentAsGraphic()
     QueryParameters allFeaturesQuery;
     allFeaturesQuery.setWhereClause("1=1");
     m_inputFeatures->queryFeatures(allFeaturesQuery);
+}
+
+void GEOINTEngineer::activatePolygonSketchTool()
+{
+    m_currentTool = m_polygonSketchTool;
+    m_currentTool->setMapView(m_mapView);
 }
 
 void GEOINTEngineer::executeTask(GeospatialTaskListModel *taskModel, int taskIndex)
@@ -373,4 +385,40 @@ void GEOINTEngineer::onTaskCompleted(GeoprocessingResult *result, ArcGISMapImage
             break;
         }
     }
+}
+
+void GEOINTEngineer::onMousePressed(QMouseEvent &mouseEvent)
+{
+    if (nullptr == m_currentTool)
+    {
+        return;
+    }
+
+    m_currentTool->mousePressed(mouseEvent);
+}
+
+void GEOINTEngineer::onMouseMoved(QMouseEvent &mouseEvent)
+{
+    if (nullptr == m_currentTool)
+    {
+        return;
+    }
+
+    m_currentTool->mouseMoved(mouseEvent);
+}
+
+void GEOINTEngineer::onMouseReleased(QMouseEvent &mouseEvent)
+{
+    if (nullptr == m_currentTool)
+    {
+        return;
+    }
+
+    m_currentTool->mouseReleased(mouseEvent);
+}
+
+void GEOINTEngineer::mousePositionChanged(qreal x, qreal y)
+{
+    QMouseEvent mouseEvent(QMouseEvent::Type::MouseMove, QPointF(x, y), Qt::MouseButton::NoButton, Qt::MouseButton::NoButton, Qt::KeyboardModifier::NoModifier);
+    onMouseMoved(mouseEvent);
 }

@@ -17,6 +17,8 @@
 class GeospatialTaskListModel;
 class LocalGeospatialServer;
 class LocalGeospatialTask;
+class MapViewTool;
+class PolygonSketchTool;
 
 namespace Esri
 {
@@ -35,6 +37,7 @@ class MapQuickView;
 }
 
 #include <QMap>
+#include <QMouseEvent>
 #include <QObject>
 #include <QUuid>
 
@@ -49,11 +52,15 @@ public:
     ~GEOINTEngineer() override;
 
     Q_INVOKABLE void addMapExtentAsGraphic();
+    Q_INVOKABLE void activatePolygonSketchTool();
+
     Q_INVOKABLE void deleteAllInputFeatures();
     Q_INVOKABLE void deleteAllOutputFeatures();
     Q_INVOKABLE void deleteAllFeatures();
     Q_INVOKABLE void executeTask(GeospatialTaskListModel *taskModel, int taskIndex);
     Q_INVOKABLE void executeAllTasks(GeospatialTaskListModel *taskModel);
+
+    Q_INVOKABLE void mousePositionChanged(qreal x, qreal y);
 
 signals:
     void mapViewChanged();
@@ -67,6 +74,10 @@ private slots:
     void onMapServiceLoaded(Esri::ArcGISRuntime::ArcGISMapImageLayer *mapImageLayer);
     void onTaskLoaded(LocalGeospatialTask *geospatialTask);
     void onTaskCompleted(Esri::ArcGISRuntime::GeoprocessingResult *result, Esri::ArcGISRuntime::ArcGISMapImageLayer *mapImageLayerResult);
+
+    void onMousePressed(QMouseEvent &mouseEvent);
+    void onMouseMoved(QMouseEvent &mouseEvent);
+    void onMouseReleased(QMouseEvent &mouseEvent);
 
 private:
     enum class DeletePostAction {
@@ -95,6 +106,9 @@ private:
 
     bool m_operationalLayerInitialized;
     DeletePostAction m_deletePostAction = DeletePostAction::None;
+
+    MapViewTool *m_currentTool = nullptr;
+    PolygonSketchTool *m_polygonSketchTool = nullptr;
 };
 
 #endif // GEOINTENGINEER_H

@@ -22,6 +22,11 @@ Item {
         model.addMapExtentAsGraphic();
     }
 
+    function activatePolygonSketchTool() {
+        sketchArea.enabled = true;
+        model.activatePolygonSketchTool();
+    }
+
     function deleteAllInputFeatures() {
         model.deleteAllInputFeatures();
     }
@@ -46,6 +51,15 @@ Item {
         anchors.fill: parent
         // set focus to enable keyboard navigation
         focus: true
+
+        MouseArea {
+            id: sketchArea
+            anchors.fill: view
+            enabled: false
+            hoverEnabled: true
+
+            onPositionChanged: model.mousePositionChanged(mouse.x, mouse.y)
+        }
     }
 
     // Declare the C++ instance which creates the map etc. and supply the view

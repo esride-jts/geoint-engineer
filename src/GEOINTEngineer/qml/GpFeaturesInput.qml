@@ -23,8 +23,11 @@ import QtQuick.Layouts 1.3
 Item {
 
     signal addMapExtentGraphic();
+    signal activatePolygonSketchTool();
 
     Row {
+        spacing: 5
+
         Button {
             anchors.top: parent.verticalCenter
             icon.name: "map"
@@ -32,6 +35,16 @@ Item {
 
             onClicked: {
                 addMapExtentGraphic();
+            }
+        }
+
+        Button {
+            anchors.top: parent.verticalCenter
+            icon.name: "map"
+            icon.source: "qrc:/Resources/pentagon-outline.svg"
+
+            onClicked: {
+                activatePolygonSketchTool();
             }
         }
     }
