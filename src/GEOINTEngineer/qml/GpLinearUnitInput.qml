@@ -20,9 +20,26 @@ import QtQuick.Layouts 1.3
   };
  */
 
-TextField {
-    placeholderText: model.parameterName
-    validator: RegExpValidator {
-        regExp: /.*/
+RowLayout {
+    spacing: 10
+
+    TextField {
+        placeholderText: model.parameterName
+        validator: DoubleValidator {
+        }
+    }
+
+    ComboBox {
+        model: ListModel {
+            ListElement {
+                text: "KM"
+            }
+            ListElement {
+                text: "M"
+            }
+            ListElement {
+                text: "NM"
+            }
+        }
     }
 }

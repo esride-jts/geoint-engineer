@@ -88,10 +88,15 @@ QVariant GeospatialTaskParameterModel::data(const QModelIndex &index, int role) 
         {
         case GeoprocessingParameterDirection::Input:
             inputParameterIndex++;
-            inputParameterInfo = parameterInfo;
             break;
 
         default:
+            break;
+        }
+
+        if (index.row() == inputParameterIndex)
+        {
+            inputParameterInfo = parameterInfo;
             break;
         }
     }
@@ -106,6 +111,9 @@ QVariant GeospatialTaskParameterModel::data(const QModelIndex &index, int role) 
         {
         case GeoprocessingParameterType::GeoprocessingFeatures:
             return "GpFeaturesInput.qml";
+
+        case GeoprocessingParameterType::GeoprocessingLinearUnit:
+            return "GpLinearUnitInput.qml";
 
         default:
             return "GpStringInput.qml";

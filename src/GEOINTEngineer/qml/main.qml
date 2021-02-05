@@ -175,6 +175,7 @@ ApplicationWindow {
 
                         ColumnLayout {
                             id: parameterTaskLayout
+                            spacing: 15
 
                             Label {
                                 id: titleLabel
@@ -191,7 +192,7 @@ ApplicationWindow {
                                 Layout.fillWidth: true
                                 wrapMode: Text.WordWrap
                                 font.italic: true
-                            }                            
+                            }
 
                             ScrollView {
                                 Layout.fillHeight: true
@@ -202,8 +203,10 @@ ApplicationWindow {
                                 ListView {
                                     id: gpTaskParameterRepeater
                                     model: gpTaskParameterModel
+                                    spacing: 15
 
                                     delegate: Column {
+                                        spacing: 10
                                         width: gpTaskParameterRepeater.width
 
                                         Label {

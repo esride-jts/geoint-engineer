@@ -21,6 +21,7 @@ import QtQuick.Layouts 1.3
  */
 
 Item {
+    implicitHeight: childrenRect.height
 
     signal addMapExtentGraphic();
     signal activatePolygonSketchTool();
@@ -31,10 +32,10 @@ Item {
     }
 
     Row {
-        spacing: 5
+        spacing: 10
 
         Button {
-            anchors.top: parent.verticalCenter
+            id: mapExtentButton
             icon.name: "map"
             icon.source: "qrc:/Resources/map.svg"
 
@@ -44,7 +45,6 @@ Item {
         }
 
         Button {
-            anchors.top: parent.verticalCenter
             icon.name: "map"
             icon.source: "qrc:/Resources/pentagon-outline.svg"
             checkable: true
