@@ -31,11 +31,15 @@ namespace Esri
 namespace ArcGISRuntime
 {
 class GeometryBuilder;
+class Graphic;
 class GraphicsOverlay;
 class MapQuickView;
 class PolygonBuilder;
+class SimpleRenderer;
 }
 }
+
+#include "Polygon.h"
 
 #include <QMouseEvent>
 #include <QObject>
@@ -46,17 +50,18 @@ class MapViewTool : public QObject
 public:
     explicit MapViewTool(QObject *parent = nullptr);
 
-    void setMapView(Esri::ArcGISRuntime::MapQuickView *mapView);
+    virtual void activate(Esri::ArcGISRuntime::MapQuickView *mapView) = 0;
+    virtual void deactivate() = 0;
 
     virtual void mousePressed(QMouseEvent &mouseEvent) = 0;
     virtual void mouseMoved(QMouseEvent &mouseEvent) = 0;
     virtual void mouseReleased(QMouseEvent &mouseEvent) = 0;
 
 signals:
+    void polygonConstructed(Esri::ArcGISRuntime::Polygon &polygon);
 
 protected:
     Esri::ArcGISRuntime::MapQuickView *m_currentMapView = nullptr;
-    Esri::ArcGISRuntime::GraphicsOverlay *m_sketchOverlay = nullptr;
 };
 
 
@@ -67,11 +72,23 @@ class PolygonSketchTool : public MapViewTool
 public:
     explicit PolygonSketchTool(QObject *parent = nullptr);
 
+    virtual void activate(Esri::ArcGISRuntime::MapQuickView *mapView) override;
+    virtual void deactivate() override;
+
     virtual void mousePressed(QMouseEvent &mouseEvent) override;
     virtual void mouseMoved(QMouseEvent &mouseEvent) override;
     virtual void mouseReleased(QMouseEvent &mouseEvent) override;
 
 private:
+    void clearSketches();
+
+    Esri::ArcGISRuntime::Graphic *m_polygonGraphic = nullptr;
+    Esri::ArcGISRuntime::GraphicsOverlay *m_sketchOverlay = nullptr;
+    Esri::ArcGISRuntime::GraphicsOverlay *m_resultOverlay = nullptr;
+
+    Esri::ArcGISRuntime::SimpleRenderer *m_verticesRenderer = nullptr;
+    Esri::ArcGISRuntime::SimpleRenderer *m_polylineRenderer = nullptr;
+    Esri::ArcGISRuntime::SimpleRenderer *m_polygonRenderer = nullptr;
     Esri::ArcGISRuntime::PolygonBuilder *m_polygonBuilder = nullptr;
 };
 

@@ -201,6 +201,10 @@ ApplicationWindow {
                                             function onActivatePolygonSketchTool() {
                                                 engineerForm.activatePolygonSketchTool();
                                             }
+
+                                            function onDeactivatePolygonSketchTool() {
+                                                engineerForm.deactivateMapTool();
+                                            }
                                         }
                                     }
                                 }

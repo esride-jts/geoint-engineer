@@ -23,8 +23,12 @@ Item {
     }
 
     function activatePolygonSketchTool() {
-        sketchArea.enabled = true;
+        //sketchArea.enabled = true;
         model.activatePolygonSketchTool();
+    }
+
+    function deactivateMapTool() {
+        model.deactivateMapTool();
     }
 
     function deleteAllInputFeatures() {
@@ -52,6 +56,7 @@ Item {
         // set focus to enable keyboard navigation
         focus: true
 
+        /*
         MouseArea {
             id: sketchArea
             anchors.fill: view
@@ -60,6 +65,7 @@ Item {
 
             onPositionChanged: model.mousePositionChanged(mouse.x, mouse.y)
         }
+        */
     }
 
     // Declare the C++ instance which creates the map etc. and supply the view

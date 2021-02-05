@@ -28,6 +28,10 @@
 #include "GraphicsOverlay.h"
 #include "MapQuickView.h"
 #include "PolygonBuilder.h"
+#include "SimpleFillSymbol.h"
+#include "SimpleLineSymbol.h"
+#include "SimpleMarkerSymbol.h"
+#include "SimpleRenderer.h"
 
 #include <QDebug>
 
@@ -38,21 +42,65 @@ MapViewTool::MapViewTool(QObject *parent) : QObject(parent)
 
 }
 
-void MapViewTool::setMapView(Esri::ArcGISRuntime::MapQuickView *mapView)
+
+
+PolygonSketchTool::PolygonSketchTool(QObject *parent) :
+    MapViewTool(parent),
+    m_polygonGraphic(new Graphic(this)),
+    m_verticesRenderer(new SimpleRenderer(this)),
+    m_polylineRenderer(new SimpleRenderer(this)),
+    m_polygonRenderer(new SimpleRenderer(this))
+{
+    QColor bwBlack("#312d2a");
+    const float pencilSize = 5;
+    SimpleMarkerSymbol *vertexSymbol = new SimpleMarkerSymbol(SimpleMarkerSymbolStyle::Circle, bwBlack, pencilSize, this);
+    m_verticesRenderer->setSymbol(vertexSymbol);
+
+    SimpleLineSymbol *lineSymbol = new SimpleLineSymbol(SimpleLineSymbolStyle::Solid, bwBlack, pencilSize, this);
+    m_polylineRenderer->setSymbol(lineSymbol);
+
+    SimpleFillSymbol *polygonSymbol = new SimpleFillSymbol(SimpleFillSymbolStyle::DiagonalCross, bwBlack, lineSymbol, this);
+    m_polygonRenderer->setSymbol(polygonSymbol);
+}
+
+void PolygonSketchTool::activate(Esri::ArcGISRuntime::MapQuickView *mapView)
 {
     m_currentMapView = mapView;
     if (nullptr == m_sketchOverlay)
     {
         m_sketchOverlay = new GraphicsOverlay(this);
+        m_sketchOverlay->setRenderer(m_verticesRenderer);
+        m_resultOverlay = new GraphicsOverlay(this);
+        m_resultOverlay->setRenderer(m_polygonRenderer);
+        m_resultOverlay->graphics()->append(m_polygonGraphic);
         m_currentMapView->graphicsOverlays()->append(m_sketchOverlay);
+        m_currentMapView->graphicsOverlays()->append(m_resultOverlay);
+        m_polygonBuilder = new PolygonBuilder(m_currentMapView->spatialReference(), this);
     }
 }
 
-
-
-PolygonSketchTool::PolygonSketchTool(QObject *parent) : MapViewTool(parent)
+void PolygonSketchTool::deactivate()
 {
+    clearSketches();
+}
 
+void PolygonSketchTool::clearSketches()
+{
+    Polygon emptyPolygon;
+    m_polygonBuilder->replaceGeometry(emptyPolygon);
+
+    QList<Graphic*> sketchGraphics;
+    for (Graphic *graphic : *m_sketchOverlay->graphics())
+    {
+        sketchGraphics.append(graphic);
+    }
+    m_sketchOverlay->graphics()->clear();
+    foreach (Graphic *graphic, sketchGraphics)
+    {
+        delete graphic;
+    }
+
+    m_polygonGraphic->setGeometry(emptyPolygon);
 }
 
 void PolygonSketchTool::mousePressed(QMouseEvent &mouseEvent)
@@ -60,12 +108,23 @@ void PolygonSketchTool::mousePressed(QMouseEvent &mouseEvent)
     mouseEvent.accept();
 
     qDebug() << "pressed";
-    if (nullptr == m_polygonBuilder)
+
+    if (Qt::MouseButton::RightButton == mouseEvent.button())
     {
-        m_polygonBuilder = new PolygonBuilder(m_currentMapView->spatialReference(), this);
+        if (2 < m_sketchOverlay->graphics()->size())
+        {
+            Polygon polygon = m_polygonBuilder->toPolygon();
+            emit polygonConstructed(polygon);
+        }
+
+        clearSketches();
+        return;
     }
 
-    m_polygonBuilder->addPoint(m_currentMapView->screenToLocation(mouseEvent.x(), mouseEvent.y()));
+    Point vertex = m_currentMapView->screenToLocation(mouseEvent.x(), mouseEvent.y());
+    Graphic *vertexGraphic = new Graphic(vertex, m_verticesRenderer->symbol(), this);
+    m_sketchOverlay->graphics()->append(vertexGraphic);
+    m_polygonBuilder->addPoint(vertex);
 }
 
 void PolygonSketchTool::mouseMoved(QMouseEvent &mouseEvent)
@@ -80,4 +139,10 @@ void PolygonSketchTool::mouseReleased(QMouseEvent &mouseEvent)
     mouseEvent.accept();
 
     qDebug() << "released";
+
+    if (2 < m_sketchOverlay->graphics()->size())
+    {
+        Polygon polygon = m_polygonBuilder->toPolygon();
+        m_polygonGraphic->setGeometry(polygon);
+    }
 }

@@ -24,6 +24,11 @@ Item {
 
     signal addMapExtentGraphic();
     signal activatePolygonSketchTool();
+    signal deactivatePolygonSketchTool();
+
+    ButtonGroup {
+        id: mapToolGroup
+    }
 
     Row {
         spacing: 5
@@ -42,9 +47,15 @@ Item {
             anchors.top: parent.verticalCenter
             icon.name: "map"
             icon.source: "qrc:/Resources/pentagon-outline.svg"
+            checkable: true
+            //ButtonGroup.group: mapToolGroup
 
-            onClicked: {
-                activatePolygonSketchTool();
+            onCheckedChanged: {
+                if (checked) {
+                    activatePolygonSketchTool();
+                } else {
+                    deactivatePolygonSketchTool();
+                }
             }
         }
     }

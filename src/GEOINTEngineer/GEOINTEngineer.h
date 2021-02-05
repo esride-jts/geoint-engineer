@@ -36,6 +36,8 @@ class MapQuickView;
 }
 }
 
+#include "Polygon.h"
+
 #include <QMap>
 #include <QMouseEvent>
 #include <QObject>
@@ -53,6 +55,7 @@ public:
 
     Q_INVOKABLE void addMapExtentAsGraphic();
     Q_INVOKABLE void activatePolygonSketchTool();
+    Q_INVOKABLE void deactivateMapTool();
 
     Q_INVOKABLE void deleteAllInputFeatures();
     Q_INVOKABLE void deleteAllOutputFeatures();
@@ -79,13 +82,15 @@ private slots:
     void onMouseMoved(QMouseEvent &mouseEvent);
     void onMouseReleased(QMouseEvent &mouseEvent);
 
+    void onPolygonConstructed(Esri::ArcGISRuntime::Polygon &polygon);
+
 private:
     enum class DeletePostAction {
         None = 0,
         AddInputFeature = 1
     };
 
-    void addInputFeaturesUsingCurrentExtent();
+    void addInputFeatures(Esri::ArcGISRuntime::Polygon &polygon);
     void initOperationalLayers();
     QList<Esri::ArcGISRuntime::Feature*> extractFeatures(Esri::ArcGISRuntime::FeatureQueryResult *queryResult);
 
@@ -106,6 +111,7 @@ private:
 
     bool m_operationalLayerInitialized;
     DeletePostAction m_deletePostAction = DeletePostAction::None;
+    Esri::ArcGISRuntime::Polygon m_inputPolygon;
 
     MapViewTool *m_currentTool = nullptr;
     PolygonSketchTool *m_polygonSketchTool = nullptr;

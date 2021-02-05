@@ -47,6 +47,8 @@ GEOINTEngineer::GEOINTEngineer(QObject *parent /* = nullptr */):
     connect(m_localGeospatialServer, &LocalGeospatialServer::mapServiceLoaded, this, &GEOINTEngineer::onMapServiceLoaded);
     connect(m_localGeospatialServer, &LocalGeospatialServer::taskLoaded, this, &GEOINTEngineer::onTaskLoaded);
     connect(m_localGeospatialServer, &LocalGeospatialServer::taskCompleted, this, &GEOINTEngineer::onTaskCompleted);
+
+    connect(m_polygonSketchTool, &PolygonSketchTool::polygonConstructed, this, &GEOINTEngineer::onPolygonConstructed);
 }
 
 GEOINTEngineer::~GEOINTEngineer()
@@ -180,10 +182,18 @@ void GEOINTEngineer::addMapExtentAsGraphic()
         initOperationalLayers();
     }
 
+    Viewpoint boundingViewpoint = m_mapView->currentViewpoint(ViewpointType::BoundingGeometry);
+    Envelope boundingBox = boundingViewpoint.targetGeometry();
+    PolygonBuilder *polygonBuilder = new PolygonBuilder(boundingBox.spatialReference(), this);
+    polygonBuilder->addPoint(boundingBox.xMin(), boundingBox.yMin());
+    polygonBuilder->addPoint(boundingBox.xMin(), boundingBox.yMax());
+    polygonBuilder->addPoint(boundingBox.xMax(), boundingBox.yMax());
+    polygonBuilder->addPoint(boundingBox.xMax(), boundingBox.yMin());
+    m_inputPolygon = polygonBuilder->toPolygon();
+
     // First of all delete all input features
     // when delete all was executed, the current map extent
     // is added as a new input feature
-
     m_deletePostAction = DeletePostAction::AddInputFeature;
     QueryParameters allFeaturesQuery;
     allFeaturesQuery.setWhereClause("1=1");
@@ -193,7 +203,17 @@ void GEOINTEngineer::addMapExtentAsGraphic()
 void GEOINTEngineer::activatePolygonSketchTool()
 {
     m_currentTool = m_polygonSketchTool;
-    m_currentTool->setMapView(m_mapView);
+    m_currentTool->activate(m_mapView);
+}
+
+void GEOINTEngineer::deactivateMapTool()
+{
+    if (nullptr != m_currentTool)
+    {
+        m_currentTool->deactivate();
+    }
+
+    m_currentTool = nullptr;
 }
 
 void GEOINTEngineer::executeTask(GeospatialTaskListModel *taskModel, int taskIndex)
@@ -232,19 +252,11 @@ void GEOINTEngineer::executeAllTasks(GeospatialTaskListModel *taskModel)
     m_localGeospatialServer->executeTasks(mapExtentAsFeatures);
 }
 
-void GEOINTEngineer::addInputFeaturesUsingCurrentExtent()
+void GEOINTEngineer::addInputFeatures(Polygon &polygon)
 {
-    Viewpoint boundingViewpoint = m_mapView->currentViewpoint(ViewpointType::BoundingGeometry);
-    Envelope boundingBox = boundingViewpoint.targetGeometry();
-    PolygonBuilder *polygonBuilder = new PolygonBuilder(boundingBox.spatialReference(), this);
-    polygonBuilder->addPoint(boundingBox.xMin(), boundingBox.yMin());
-    polygonBuilder->addPoint(boundingBox.xMin(), boundingBox.yMax());
-    polygonBuilder->addPoint(boundingBox.xMax(), boundingBox.yMax());
-    polygonBuilder->addPoint(boundingBox.xMax(), boundingBox.yMin());
-    Polygon envelopeAsPolygon = polygonBuilder->toPolygon();
     QVariantMap emptyAttributes;
     Feature *envelopeAsFeature = m_inputFeatures->createFeature(this);
-    envelopeAsFeature->setGeometry(envelopeAsPolygon);
+    envelopeAsFeature->setGeometry(polygon);
 
     m_inputFeatures->addFeature(envelopeAsFeature);
 }
@@ -263,8 +275,8 @@ void GEOINTEngineer::onDeleteAllInputFeatures(QUuid, FeatureQueryResult *queryRe
         switch (m_deletePostAction)
         {
         case DeletePostAction::AddInputFeature:
-            // No need for delete just add the map extent as feature
-            addInputFeaturesUsingCurrentExtent();
+            // No need for delete just add the feature
+            addInputFeatures(m_inputPolygon);
             return;
 
         default:
@@ -296,7 +308,7 @@ void GEOINTEngineer::onFeaturesDeleted(QUuid taskId, bool deleted)
         switch (m_deletePostAction)
         {
         case DeletePostAction::AddInputFeature:
-            addInputFeaturesUsingCurrentExtent();
+            addInputFeatures(m_inputPolygon);
             return;
 
         default:
@@ -421,4 +433,23 @@ void GEOINTEngineer::mousePositionChanged(qreal x, qreal y)
 {
     QMouseEvent mouseEvent(QMouseEvent::Type::MouseMove, QPointF(x, y), Qt::MouseButton::NoButton, Qt::MouseButton::NoButton, Qt::KeyboardModifier::NoModifier);
     onMouseMoved(mouseEvent);
+}
+
+void GEOINTEngineer::onPolygonConstructed(Polygon &polygon)
+{
+    if (!m_operationalLayerInitialized)
+    {
+        // Add the operational layers
+        initOperationalLayers();
+    }
+
+    m_inputPolygon = polygon;
+
+    // First of all delete all input features
+    // when delete all was executed, the current map extent
+    // is added as a new input feature
+    m_deletePostAction = DeletePostAction::AddInputFeature;
+    QueryParameters allFeaturesQuery;
+    allFeaturesQuery.setWhereClause("1=1");
+    m_inputFeatures->queryFeatures(allFeaturesQuery);
 }
