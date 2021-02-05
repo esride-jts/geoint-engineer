@@ -116,3 +116,17 @@ QVariant GeospatialTaskParameterModel::data(const QModelIndex &index, int role) 
         return QVariant();
     }
 }
+
+bool GeospatialTaskParameterModel::isPolygonSketchToolActivated() const
+{
+    return m_polygonSketchToolActivated;
+}
+
+void GeospatialTaskParameterModel::setPolygonSketchToolActivated(bool activated)
+{
+    if (activated != m_polygonSketchToolActivated)
+    {
+        m_polygonSketchToolActivated = activated;
+        emit polygonSketchToolActivatedChanged();
+    }
+}

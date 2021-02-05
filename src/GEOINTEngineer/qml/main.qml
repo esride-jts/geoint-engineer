@@ -165,7 +165,6 @@ ApplicationWindow {
                                 font.italic: true
                             }                            
 
-
                             ScrollView {
                                 Layout.fillHeight: true
                                 Layout.fillWidth: true
@@ -200,10 +199,12 @@ ApplicationWindow {
 
                                             function onActivatePolygonSketchTool() {
                                                 engineerForm.activatePolygonSketchTool();
+                                                gpTaskParameterModel.polygonSketchToolActivated = true;
                                             }
 
                                             function onDeactivatePolygonSketchTool() {
                                                 engineerForm.deactivateMapTool();
+                                                gpTaskParameterModel.polygonSketchToolActivated = false;
                                             }
                                         }
                                     }

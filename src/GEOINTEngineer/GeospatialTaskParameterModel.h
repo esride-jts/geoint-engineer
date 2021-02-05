@@ -33,6 +33,8 @@ class LocalGeospatialTask;
 
 class GeospatialTaskParameterModel : public QAbstractListModel
 {
+    Q_PROPERTY(bool polygonSketchToolActivated READ isPolygonSketchToolActivated WRITE setPolygonSketchToolActivated NOTIFY polygonSketchToolActivatedChanged)
+
     Q_OBJECT
 public:
     explicit GeospatialTaskParameterModel(QObject *parent = nullptr);
@@ -44,14 +46,19 @@ public:
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
 
 signals:
+    void polygonSketchToolActivatedChanged();
 
 private:
+    bool isPolygonSketchToolActivated() const;
+    void setPolygonSketchToolActivated(bool activated);
+
     enum RoleNames {
         ParameterNameRole = Qt::UserRole + 1,
         UiEditorRole = Qt::UserRole + 2
     };
 
     LocalGeospatialTask *m_localGeospatialTask = nullptr;
+    bool m_polygonSketchToolActivated = false;
 };
 
 #endif // GEOSPATIALTASKPARAMETERMODEL_H

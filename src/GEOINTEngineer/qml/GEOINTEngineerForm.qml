@@ -47,6 +47,10 @@ Item {
         model.executeAllTasks(taskModel);
     }
 
+    function isPolygonSketchToolActivated() {
+        return model.polygonSketchToolActivated;
+    }
+
     signal taskLoaded(LocalGeospatialTask geospatialTask);
 
     // Create MapQuickView here, and create its Map etc. in C++ code

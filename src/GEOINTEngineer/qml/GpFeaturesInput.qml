@@ -49,6 +49,7 @@ Item {
             icon.source: "qrc:/Resources/pentagon-outline.svg"
             checkable: true
             //ButtonGroup.group: mapToolGroup
+            checked: gpTaskParameterModel.polygonSketchToolActivated
 
             onCheckedChanged: {
                 if (checked) {
