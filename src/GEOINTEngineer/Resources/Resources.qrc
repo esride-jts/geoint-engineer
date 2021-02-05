@@ -5,5 +5,8 @@
         <file>map-marker-remove.svg</file>
         <file>map-marker-remove-outline.svg</file>
         <file>pentagon-outline.svg</file>
+        <file>fullscreen.svg</file>
+        <file>fullscreen-exit.svg</file>
+        <file>exit-to-app.svg</file>
     </qresource>
 </RCC>

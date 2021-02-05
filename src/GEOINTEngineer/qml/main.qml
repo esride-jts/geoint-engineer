@@ -18,6 +18,7 @@ import QtQuick.Layouts 1.3
 import Esri.GEOINTEngineer 1.0
 
 ApplicationWindow {
+    id: appWindow
     visible: true
     width: 900
     height: 600
@@ -40,6 +41,24 @@ ApplicationWindow {
             anchors.fill: parent
 
             ToolButton {
+                icon.name: "fullscreen"
+                icon.source: "qrc:/Resources/fullscreen.svg"
+
+                onClicked: {
+                    appWindow.showFullScreen();
+                }
+            }
+
+            ToolButton {
+                icon.name: "fullscreen-exit"
+                icon.source: "qrc:/Resources/fullscreen-exit.svg"
+
+                onClicked: {
+                    appWindow.showNormal();
+                }
+            }
+
+            ToolButton {
                 icon.name: "map-marker-remove-outline"
                 icon.source: "qrc:/Resources/map-marker-remove-outline.svg"
 
@@ -59,6 +78,15 @@ ApplicationWindow {
 
             Item {
                 Layout.fillWidth: true
+            }
+
+            ToolButton {
+                icon.name: "exit-to-app"
+                icon.source: "qrc:/Resources/exit-to-app.svg"
+
+                onClicked: {
+                    Qt.quit();
+                }
             }
         }
     }
