@@ -73,7 +73,7 @@ QFileInfoList LocalGeospatialServer::geoprocessingPackages() const
     if (systemEnvironment.contains(pathKeyName))
     {
         QString directoryPath = systemEnvironment.value(pathKeyName);
-        return listFiles(directoryPath, "*.gpk");
+        return listFiles(directoryPath, "*.gpkx");
     }
 
     return QFileInfoList();
@@ -202,7 +202,8 @@ void LocalGeospatialServer::startGeoprocessing()
         }
         else
         {
-            localGpService->setServiceType(GeoprocessingServiceType::SynchronousExecute);
+            //localGpService->setServiceType(GeoprocessingServiceType::SynchronousExecute);
+            localGpService->setServiceType(GeoprocessingServiceType::AsynchronousSubmitWithMapServerResult);
         }
         connect(localGpService, &LocalGeoprocessingService::statusChanged, this, [this, localGpService]()
         {
