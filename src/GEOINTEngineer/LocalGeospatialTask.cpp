@@ -25,8 +25,19 @@
 
 #include "LocalGeospatialTask.h"
 
+#include <QDebug>
+#include <QUrl>
+#include <QUuid>
+
+#include "ArcGISMapImageLayer.h"
 #include "GeoprocessingFeatures.h"
+#include "GeoprocessingJob.h"
+#include "GeoprocessingResult.h"
 #include "GeoprocessingTask.h"
+#include "GeoprocessingTaskInfo.h"
+#include "GeoprocessingTypes.h"
+#include "TaskTypes.h"
+#include "TaskWatcher.h"
 
 using namespace Esri::ArcGISRuntime;
 

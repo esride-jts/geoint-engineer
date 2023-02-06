@@ -25,13 +25,19 @@
 
 #include "MapViewTool.h"
 
+#include "Graphic.h"
+#include "GraphicListModel.h"
 #include "GraphicsOverlay.h"
+#include "GraphicsOverlayListModel.h"
 #include "MapQuickView.h"
+#include "Point.h"
 #include "PolygonBuilder.h"
 #include "SimpleFillSymbol.h"
 #include "SimpleLineSymbol.h"
 #include "SimpleMarkerSymbol.h"
 #include "SimpleRenderer.h"
+#include "SpatialReference.h"
+#include "SymbolTypes.h"
 
 #include <QDebug>
 

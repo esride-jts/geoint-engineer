@@ -13,23 +13,27 @@
 
 TEMPLATE = app
 
-CONFIG += c++14
+CONFIG += c++17
 
 # additional modules are pulled in via arcgisruntime.pri
 QT += opengl qml quick quickcontrols2
 
 TARGET = GEOINTEngineer
 
-equals(QT_MAJOR_VERSION, 5) {
-    lessThan(QT_MINOR_VERSION, 15) { 
-        error("$$TARGET requires Qt 5.15.0")
-    }
-	equals(QT_MINOR_VERSION, 15) : lessThan(QT_PATCH_VERSION, 0) {
-		error("$$TARGET requires Qt 5.15.0")
-	}
+lessThan(QT_MAJOR_VERSION, 6) {
+    error("$$TARGET requires Qt 6.2.4")
 }
 
-ARCGIS_RUNTIME_VERSION = 100.12
+equals(QT_MAJOR_VERSION, 6) {
+    lessThan(QT_MINOR_VERSION, 2) {
+        error("$$TARGET requires Qt 6.2.4")
+    }
+        equals(QT_MINOR_VERSION, 2) : lessThan(QT_PATCH_VERSION, 4) {
+                error("$$TARGET requires Qt 6.2.4")
+        }
+}
+
+ARCGIS_RUNTIME_VERSION = 200.0.0
 include($$PWD/arcgisruntime.pri)
 
 HEADERS += \

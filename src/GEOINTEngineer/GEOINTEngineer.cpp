@@ -16,18 +16,33 @@
 #include "LocalGeospatialTask.h"
 #include "MapViewTool.h"
 
+#include "ArcGISMapImageLayer.h"
 #include "Basemap.h"
+#include "Envelope.h"
+#include "Feature.h"
+#include "FeatureCollection.h"
 #include "FeatureCollectionLayer.h"
 #include "FeatureCollectionTable.h"
+#include "FeatureCollectionTableListModel.h"
+#include "FeatureIterator.h"
 #include "FeatureQueryResult.h"
+#include "Field.h"
 #include "GeoprocessingFeatures.h"
 #include "GeoprocessingResult.h"
+#include "GeoprocessingTypes.h"
+#include "LayerListModel.h"
 #include "Map.h"
 #include "MapQuickView.h"
+#include "MapTypes.h"
 #include "PolygonBuilder.h"
+#include "QueryParameters.h"
 #include "SimpleFillSymbol.h"
 #include "SimpleLineSymbol.h"
 #include "SimpleRenderer.h"
+#include "SpatialReference.h"
+#include "SymbolTypes.h"
+#include "TaskWatcher.h"
+#include "Viewpoint.h"
 
 #include <QUrl>
 
@@ -37,7 +52,7 @@ using namespace Esri::ArcGISRuntime;
 
 GEOINTEngineer::GEOINTEngineer(QObject *parent /* = nullptr */):
     QObject(parent),
-    m_map(new Map(Basemap::openStreetMap(this), this)),
+    m_map(new Map(BasemapStyle::OsmStandard, this)),
     m_inputFeatureLayer(new FeatureCollectionLayer(new FeatureCollection(this), this)),
     m_localGeospatialServer(new LocalGeospatialServer(this)),
     m_operationalLayerInitialized(false),
@@ -183,7 +198,9 @@ void GEOINTEngineer::addMapExtentAsGraphic()
     }
 
     Viewpoint boundingViewpoint = m_mapView->currentViewpoint(ViewpointType::BoundingGeometry);
-    Envelope boundingBox = boundingViewpoint.targetGeometry();
+    // TODO: Validate if 200.0 delivers a valid extent!
+    //Envelope boundingBox = boundingViewpoint.targetGeometry()
+    Envelope boundingBox = boundingViewpoint.targetGeometry().extent();
     PolygonBuilder *polygonBuilder = new PolygonBuilder(boundingBox.spatialReference(), this);
     polygonBuilder->addPoint(boundingBox.xMin(), boundingBox.yMin());
     polygonBuilder->addPoint(boundingBox.xMin(), boundingBox.yMax());

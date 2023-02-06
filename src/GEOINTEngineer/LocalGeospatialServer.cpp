@@ -26,20 +26,28 @@
 #include "LocalGeospatialServer.h"
 #include "LocalGeospatialTask.h"
 
+#include "ArcGISMapImageLayer.h"
 #include "ArcGISRuntimeEnvironment.h"
+#include "CoreTypes.h"
+#include "Credential.h"
 #include "GeoprocessingFeatures.h"
 #include "GeoprocessingTask.h"
+#include "LicenseInfo.h"
+#include "LicenseResult.h"
 #include "LocalGeoprocessingService.h"
 #include "LocalMapService.h"
 #include "LocalServer.h"
+#include "MapTypes.h"
 #include "MobileMapPackage.h"
 #include "Portal.h"
+#include "TaskWatcher.h"
 
 #include <QDebug>
 #include <QDir>
 #include <QFile>
 #include <QJsonArray>
 #include <QJsonDocument>
+#include <QJsonObject>
 #include <QNetworkReply>
 #include <QNetworkRequest>
 #include <QProcessEnvironment>

@@ -26,6 +26,7 @@
 #include "LocalGeospatialTask.h"
 
 #include "GeoprocessingParameterInfo.h"
+#include "GeoprocessingTypes.h"
 
 using namespace Esri::ArcGISRuntime;
 
